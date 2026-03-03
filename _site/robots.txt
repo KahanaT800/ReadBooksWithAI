@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://KahanaT800.github.io/ReadBooksWithAI/sitemap.xml
