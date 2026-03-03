@@ -5,11 +5,12 @@ module.exports = {
   },
   hooks: {
     'page:before': function (page) {
-      // Encode mermaid content as base64 to prevent markdown parser from escaping arrows
+      // URL-encode mermaid content to prevent markdown parser from escaping arrows
+      // encodeURIComponent is natively UTF-8 safe — no base64 needed
       page.content = page.content.replace(
         /```mermaid([\s\S]*?)```/g,
         function (match, code) {
-          var encoded = Buffer.from(code.trim()).toString('base64');
+          var encoded = encodeURIComponent(code.trim());
           return '<pre class="mermaid-encoded" data-mermaid="' + encoded + '"></pre>';
         }
       );
