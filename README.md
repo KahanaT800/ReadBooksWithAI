@@ -101,7 +101,7 @@ switch (x) {
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/your-username/ReadBooksWithAI.git
+git clone https://github.com/KahanaT800/ReadBooksWithAI.git
 cd ReadBooksWithAI
 
 # 2. 用 Claude Code 打开项目，然后依次运行：
@@ -168,15 +168,16 @@ cp ~/CandPointer.pdf books/c-and-pointers/refs/
   - lesson-02: 指针陷阱与表达式 👀
   - lesson-03: 指针运算 👀
 
-### 构建电子书
+### 在线阅读
 
-课程可以用 [honkit](https://github.com/honkit/honkit) 构建为可浏览的静态 HTML 电子书：
+**[在线阅读《C和指针》](https://KahanaT800.github.io/ReadBooksWithAI/)** — 推送到 main 分支后自动构建发布。
+
+本地构建：
 
 ```bash
 cd books/c-and-pointers
 npm install            # 首次需要安装依赖
 npx honkit serve       # 本地预览 http://localhost:4000
-npx honkit build       # 构建到 _book/ 目录
 ```
 
 ---

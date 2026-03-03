@@ -23,4 +23,4 @@ gcc -std=c99 -Wall -Wextra -g -o example example.c
 
 ---
 
-> 本书由 [ReadBooksWithAI](https://github.com/your-username/ReadBooksWithAI) 项目生成。
+> 本书由 [ReadBooksWithAI](https://github.com/KahanaT800/ReadBooksWithAI) 项目生成。
