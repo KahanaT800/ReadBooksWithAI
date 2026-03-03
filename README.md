@@ -168,6 +168,17 @@ cp ~/CandPointer.pdf books/c-and-pointers/refs/
   - lesson-02: 指针陷阱与表达式 👀
   - lesson-03: 指针运算 👀
 
+### 构建电子书
+
+课程可以用 [honkit](https://github.com/honkit/honkit) 构建为可浏览的静态 HTML 电子书：
+
+```bash
+cd books/c-and-pointers
+npm install            # 首次需要安装依赖
+npx honkit serve       # 本地预览 http://localhost:4000
+npx honkit build       # 构建到 _book/ 目录
+```
+
 ---
 
 ## 仓库结构

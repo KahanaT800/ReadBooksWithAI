@@ -17,3 +17,8 @@ Thumbs.db
 *.backup.md
 *-outline.md
 *-review.md
+
+# Honkit 构建产物
+_book/
+node_modules/
+package-lock.json
