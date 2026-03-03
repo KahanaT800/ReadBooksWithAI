@@ -3,7 +3,7 @@
     var blocks = document.querySelectorAll('pre.mermaid-encoded[data-mermaid]');
     blocks.forEach(function (block) {
       var encoded = block.getAttribute('data-mermaid');
-      var decoded = atob(encoded);
+      var decoded = decodeURIComponent(escape(atob(encoded)));
       var div = document.createElement('div');
       div.className = 'mermaid';
       div.textContent = decoded;
