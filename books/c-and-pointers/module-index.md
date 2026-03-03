@@ -33,7 +33,7 @@
 
 | # | 文件 | 标题 | 核心概念 | 状态 |
 |---|------|------|---------|------|
-| 01 | `module-02-functions/lesson-01-function-mechanics.md` | 函数机制与参数传递 | 函数定义, 函数原型, 参数传递(传值), 传指针模拟传引用 | ⬜ |
+| 01 | `module-02-functions/lesson-01-function-mechanics.md` | 函数机制与参数传递 | 函数定义, 函数原型, 参数传递(传值), 传指针模拟传引用 | 👀 |
 | 02 | `module-02-functions/lesson-02-recursion-and-design.md` | 递归与程序设计 | 递归, 递归与迭代, ADT 和黑盒设计, 可变参数(stdarg) | ⬜ |
 
 ---

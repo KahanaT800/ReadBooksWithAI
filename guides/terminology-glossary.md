@@ -48,5 +48,10 @@
 | 缩放 | scaling | module-01 lesson-03 | 指针加减整数时，整数自动乘以所指类型的 `sizeof` 大小，使指针按元素而非字节移动 |
 | ptrdiff_t | ptrdiff_t | module-01 lesson-03 | 两个指针相减的结果类型，定义在 `<stddef.h>` 中，是有符号整数类型，打印用 `%td` |
 | past-the-end 指针 | past-the-end pointer | module-01 lesson-03 | 指向数组最后一个元素之后一个位置的指针，可以持有和比较但不能解引用 |
+| 函数定义 | function definition | module-02 lesson-01 | 函数的实现，包含返回类型、函数名、形参列表和函数体 |
+| 函数原型 | function prototype | module-02 lesson-01 | 函数的声明，告诉编译器函数的名字、返回类型和参数类型，不包含函数体 |
+| 形式参数 | formal parameter | module-02 lesson-01 | 函数定义中声明的参数变量，接收调用时传入的实参值的副本 |
+| 实参 | actual argument | module-02 lesson-01 | 调用函数时传入的表达式或变量，其值被复制给形参 |
+| 传值调用 | pass by value | module-02 lesson-01 | C 唯一的参数传递机制：函数接收实参值的副本，修改形参不影响实参 |
 
 <!-- 由 /write-lesson skill 在写课过程中自动填充 -->
