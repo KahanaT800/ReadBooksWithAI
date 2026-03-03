@@ -21,9 +21,9 @@
 
 | # | 文件 | 标题 | 核心概念 | 状态 |
 |---|------|------|---------|------|
-| 01 | `module-01-pointer-fundamentals/lesson-01-memory-and-pointers.md` | 内存模型与指针入门 | 内存和地址, 值和类型, 指针声明, 间接访问(解引用) | ⬜ |
-| 02 | `module-01-pointer-fundamentals/lesson-02-pointer-pitfalls.md` | 指针陷阱与表达式 | 未初始化指针, NULL 指针, 指针与左值, 指针的指针, 指针表达式 | ⬜ |
-| 03 | `module-01-pointer-fundamentals/lesson-03-pointer-arithmetic.md` | 指针运算 | 指针加减整数, 指针相减, 指针关系运算 | ⬜ |
+| 01 | `module-01-pointer-fundamentals/lesson-01-memory-and-pointers.md` | 内存模型与指针入门 | 内存和地址, 值和类型, 指针声明, 间接访问(解引用) | 👀 |
+| 02 | `module-01-pointer-fundamentals/lesson-02-pointer-pitfalls.md` | 指针陷阱与表达式 | 未初始化指针, NULL 指针, 指针与左值, 指针的指针, 指针表达式 | 👀 |
+| 03 | `module-01-pointer-fundamentals/lesson-03-pointer-arithmetic.md` | 指针运算 | 指针加减整数, 指针相减, 指针关系运算 | 👀 |
 
 ---
 
