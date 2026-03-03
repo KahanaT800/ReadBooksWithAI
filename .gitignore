@@ -1,0 +1,19 @@
+# 参考书 PDF（版权材料，不上传）
+books/*/refs/*.pdf
+
+# Claude Code 本地缓存
+.claude/settings.local.json
+
+# 编译产物
+*.o
+*.out
+a.out
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.backup.md
+*-outline.md
+*-review.md
