@@ -3,12 +3,9 @@
   "description": "基于《Pointers on C》(Kenneth A. Reek) 的定制化重写教材",
   "language": "zh-hans",
   "plugins": [
-    "mermaid-gb3",
+    "mermaid-cdn",
     "-sharing",
     "-lunr",
     "-search"
-  ],
-  "pluginsConfig": {
-    "mermaid-gb3": {}
-  }
+  ]
 }

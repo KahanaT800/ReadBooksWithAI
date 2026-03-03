@@ -1,0 +1,9 @@
+{
+  "name": "honkit-plugin-mermaid-cdn",
+  "version": "1.0.0",
+  "description": "Render Mermaid diagrams via CDN for honkit",
+  "main": "index.js",
+  "engines": {
+    "honkit": "*"
+  }
+}
