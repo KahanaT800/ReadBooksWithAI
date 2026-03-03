@@ -170,7 +170,7 @@ cp ~/CandPointer.pdf books/c-and-pointers/refs/
 
 ### 在线阅读
 
-**[在线阅读《C和指针》](https://KahanaT800.github.io/ReadBooksWithAI/)** — 推送到 main 分支后自动构建发布。
+**[在线阅读《C和指针》](https://KahanaT800.github.io/ReadBooksWithAI/pointers-on-c/)** — 推送到 main 分支后自动构建发布。
 
 本地构建：
 

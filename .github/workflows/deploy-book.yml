@@ -1,11 +1,12 @@
-name: Deploy Book to GitHub Pages
+name: Deploy Books to GitHub Pages
 
 on:
   push:
     branches: [main]
     paths:
-      - 'books/c-and-pointers/**'
+      - 'books/**'
       - '.github/workflows/deploy-book.yml'
+      - '_site/**'
   workflow_dispatch:
 
 permissions:
@@ -27,20 +28,35 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      # Build: Pointers on C
+      - name: Install dependencies (pointers-on-c)
         working-directory: books/c-and-pointers
         run: |
           npm install
           ln -s $(pwd)/plugins/honkit-plugin-mermaid-cdn node_modules/honkit-plugin-mermaid-cdn
 
-      - name: Build book
+      - name: Build book (pointers-on-c)
         working-directory: books/c-and-pointers
-        run: npx honkit build
+        run: npx honkit build . ../../_site/pointers-on-c
+
+      # Add more books here:
+      # - name: Install dependencies (another-book)
+      #   working-directory: books/another-book
+      #   run: |
+      #     npm install
+      #     ln -s $(pwd)/plugins/... node_modules/...
+      # - name: Build book (another-book)
+      #   working-directory: books/another-book
+      #   run: npx honkit build . ../../_site/another-book
+
+      # Copy landing page
+      - name: Copy landing page
+        run: cp _site/index.html _site/index.html 2>/dev/null || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: books/c-and-pointers/_book
+          path: _site
 
   deploy:
     needs: build

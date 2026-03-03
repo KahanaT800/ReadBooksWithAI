@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReadBooksWithAI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; color: #333; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 60px 20px; }
+    h1 { font-size: 2em; margin-bottom: 8px; }
+    .subtitle { color: #666; margin-bottom: 48px; font-size: 1.1em; }
+    .books { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; max-width: 800px; }
+    .book-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 32px; width: 360px; text-decoration: none; color: inherit; transition: box-shadow 0.2s, transform 0.2s; }
+    .book-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .book-card h2 { font-size: 1.3em; margin-bottom: 8px; }
+    .book-card .author { color: #888; font-size: 0.9em; margin-bottom: 12px; }
+    .book-card .desc { color: #555; font-size: 0.95em; line-height: 1.5; margin-bottom: 16px; }
+    .book-card .progress { font-size: 0.85em; color: #888; }
+    .book-card .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; }
+    footer { margin-top: 60px; color: #999; font-size: 0.85em; }
+    footer a { color: #666; }
+  </style>
+</head>
+<body>
+  <h1>ReadBooksWithAI</h1>
+  <p class="subtitle">AI 重写经典教材 — 定制化、现代化、读得懂</p>
+  <div class="books">
+    <a class="book-card" href="pointers-on-c/">
+      <h2>C和指针</h2>
+      <p class="author">Kenneth A. Reek · Pointers on C</p>
+      <p class="desc">从内存模型到数据结构实现，13 个模块 29 课，系统掌握 C 语言指针与底层编程。</p>
+      <p class="progress"><span class="badge">5 / 29 课已完成</span></p>
+    </a>
+  </div>
+  <footer>
+    Powered by <a href="https://github.com/KahanaT800/ReadBooksWithAI">ReadBooksWithAI</a>
+  </footer>
+</body>
+</html>
