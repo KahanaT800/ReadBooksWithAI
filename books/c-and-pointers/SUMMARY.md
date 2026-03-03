@@ -61,8 +61,9 @@
 
 ## Module 11: 标准库与运行时
 
-* [标准库精选](module-11-stdlib-and-runtime/lesson-01-stdlib-essentials.md)
-* [运行时环境](module-11-stdlib-and-runtime/lesson-02-runtime-environment.md)
+* [数值函数与时间](module-11-stdlib-and-runtime/lesson-01-numeric-and-time.md)
+* [执行控制与信号](module-11-stdlib-and-runtime/lesson-02-env-and-signals.md)
+* [运行时环境](module-11-stdlib-and-runtime/lesson-03-runtime-environment.md)
 
 ## Module 12: 数据结构实现
 

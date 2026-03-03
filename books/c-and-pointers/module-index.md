@@ -1,6 +1,6 @@
 # 课程总索引 — 《C和指针》
 
-> 13 个模块，29 课
+> 13 个模块，30 课
 
 ---
 
@@ -10,8 +10,8 @@
 
 | # | 文件 | 标题 | 核心概念 | 状态 |
 |---|------|------|---------|------|
-| 01 | `module-00-c-basics/lesson-01-program-structure.md` | C 程序结构与编译 | 程序结构, 预处理指令, 数据类型, 变量声明, typedef, 常量 | 👀 |
-| 02 | `module-00-c-basics/lesson-02-control-and-operators.md` | 控制流与操作符 | 控制流, 操作符, 表达式求值, 优先级, 左值/右值, 作用域, 链接属性, 存储类型 | 👀 |
+| 01 | `module-00-c-basics/lesson-01-program-structure.md` | C 程序结构与编译 | 程序结构, 编译流程, 数据类型与 sizeof, 变量声明与常量, 作用域, 链接属性, 存储类型 | 👀 |
+| 02 | `module-00-c-basics/lesson-02-control-and-operators.md` | 控制流与操作符 | 表达式语句与副作用, 控制流语句, 操作符分类, 左值与右值, 隐式类型转换, 优先级与求值顺序, typedef | 👀 |
 
 ---
 
@@ -21,7 +21,7 @@
 
 | # | 文件 | 标题 | 核心概念 | 状态 |
 |---|------|------|---------|------|
-| 01 | `module-01-pointer-fundamentals/lesson-01-memory-and-pointers.md` | 内存模型与指针入门 | 内存和地址, 值和类型, 指针声明, 间接访问(解引用) | 👀 |
+| 01 | `module-01-pointer-fundamentals/lesson-01-memory-and-pointers.md` | 内存模型与指针入门 | 内存和地址, 值和类型, 指针声明与初始化, 间接访问（解引用） | 👀 |
 | 02 | `module-01-pointer-fundamentals/lesson-02-pointer-pitfalls.md` | 指针陷阱与表达式 | 未初始化指针, NULL 指针, 指针与左值, 指针的指针, 指针表达式 | 👀 |
 | 03 | `module-01-pointer-fundamentals/lesson-03-pointer-arithmetic.md` | 指针运算 | 指针加减整数, 指针相减, 指针关系运算 | 👀 |
 
@@ -33,8 +33,8 @@
 
 | # | 文件 | 标题 | 核心概念 | 状态 |
 |---|------|------|---------|------|
-| 01 | `module-02-functions/lesson-01-function-mechanics.md` | 函数机制与参数传递 | 函数定义, 函数原型, 参数传递(传值), 传指针模拟传引用 | 👀 |
-| 02 | `module-02-functions/lesson-02-recursion-and-design.md` | 递归与程序设计 | 递归, 递归与迭代, ADT 和黑盒设计, 可变参数(stdarg) | ⬜ |
+| 01 | `module-02-functions/lesson-01-function-mechanics.md` | 函数机制与参数传递 | 函数定义与返回值, 函数原型, 参数传递（传值）, 传指针模拟传引用 | 👀 |
+| 02 | `module-02-functions/lesson-02-recursion-and-design.md` | 递归与程序设计 | 递归, 递归与迭代, ADT 和黑盒设计, 可变参数(stdarg) | 👀 |
 
 ---
 
@@ -129,12 +129,13 @@
 
 ## Module 11: 标准库与运行时
 
-> 原书章节：Ch16, Ch18 | 2 课
+> 原书章节：Ch16, Ch18 | 3 课
 
 | # | 文件 | 标题 | 核心概念 | 状态 |
 |---|------|------|---------|------|
-| 01 | `module-11-stdlib-and-runtime/lesson-01-stdlib-essentials.md` | 标准库精选 | 整型函数, 随机数, qsort/bsearch, assert, 环境变量, system | ⬜ |
-| 02 | `module-11-stdlib-and-runtime/lesson-02-runtime-environment.md` | 运行时环境 | 堆栈帧, 静态变量, 运行时效率, signal, setjmp/longjmp | ⬜ |
+| 01 | `module-11-stdlib-and-runtime/lesson-01-numeric-and-time.md` | 数值函数与时间 | 整型函数(算术/随机数/字符串转换), 浮点型函数, 日期和时间函数, vprintf | ⬜ |
+| 02 | `module-11-stdlib-and-runtime/lesson-02-env-and-signals.md` | 执行控制与信号 | 非本地跳转(setjmp/longjmp), 信号(signal), 执行环境(exit/assert/system), qsort/bsearch, locale | ⬜ |
+| 03 | `module-11-stdlib-and-runtime/lesson-03-runtime-environment.md` | 运行时环境 | 堆栈帧, 静态变量和初始化, 寄存器变量, 堆栈帧布局, 表达式的副作用, C和汇编接口, 运行时效率 | ⬜ |
 
 ---
 

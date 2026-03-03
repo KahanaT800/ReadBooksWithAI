@@ -45,11 +45,15 @@ argument-hint: "<book> <module> <lesson> 例: c-and-pointers module-00-c-basics 
 
 ### 第二步：定位原书内容
 
-根据课程 YAML frontmatter 中的 `original_chapters` 页码：
+根据课程 YAML frontmatter 中的 `original_chapters` 和索引文件中的定位信息：
 
 1. 读取 `books/$BOOK_ID/refs/` 下的相关索引文件
-2. 读取原书 PDF 中对应的推荐页（用于事实核查）
-3. ⚠️ 每次不超过 20 页 PDF
+2. **优先使用 epub 文本**（如有 `refs/epub-extracted/` 目录）：
+   - 索引中标注了 `chNN.txt:LXX` 格式的 epub 行号，直接用 Read 工具读取对应行号范围
+   - epub 纯文本可精确定位，是最高效的事实核查方式
+3. **降级到 PDF**（仅当 epub 文本不可用或内容不清晰时）：
+   - 按索引中的书页范围读取，需将书页转为 PDF 页码
+   - ⚠️ 每次不超过 20 页 PDF
 
 ### 第三步：七维勘验
 

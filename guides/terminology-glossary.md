@@ -53,5 +53,14 @@
 | 形式参数 | formal parameter | module-02 lesson-01 | 函数定义中声明的参数变量，接收调用时传入的实参值的副本 |
 | 实参 | actual argument | module-02 lesson-01 | 调用函数时传入的表达式或变量，其值被复制给形参 |
 | 传值调用 | pass by value | module-02 lesson-01 | C 唯一的参数传递机制：函数接收实参值的副本，修改形参不影响实参 |
+| 递归 | recursion | module-02 lesson-02 | 函数在执行过程中直接或间接调用自身的编程技巧，需要终止条件和逐步逼近 |
+| 尾递归 | tail recursion | module-02 lesson-02 | 递归调用是函数执行的最后一个操作的特殊递归形式，编译器可优化为循环 |
+| 抽象数据类型 | Abstract Data Type (ADT) | module-02 lesson-02 | 只暴露操作接口、隐藏内部实现的数据类型设计方式，也称黑盒设计 |
+| 可变参数 | variadic | module-02 lesson-02 | 函数接受不确定数量参数的机制，通过 `<stdarg.h>` 中的 va_list/va_start/va_arg/va_end 实现 |
+| 记忆化 | memoization | module-02 lesson-02 | 用缓存（如数组）保存已计算的递归结果，避免重复计算，将指数级复杂度降为线性 |
+| 隐式类型转换 | implicit type conversion | module-00 lesson-02 | 混合类型运算时 C 自动进行的类型转换，包括整型提升和寻常算术转换 |
+| 整型提升 | integral promotion | module-00 lesson-02 | 比 int 窄的类型（char、short）在运算前自动提升为 int 或 unsigned int |
+| 寻常算术转换 | usual arithmetic conversion | module-00 lesson-02 | 二元操作符两侧类型不同时，较窄类型自动转换为较宽类型的规则 |
+| 边界对齐 | boundary alignment | module-01 lesson-01 | 多字节类型的起始地址必须是其大小的倍数（如 int 地址为 4 的倍数），硬件要求 |
 
 <!-- 由 /write-lesson skill 在写课过程中自动填充 -->

@@ -3,19 +3,26 @@ module: "module-00-c-basics"
 lesson: "lesson-02"
 title: "控制流与操作符"
 original_chapters:
+  - chapter: 4
+    pages: "51-63"
+  - chapter: 5
+    pages: "67-88"
   - chapter: 3
     pages: "38"
-  - chapter: 4
-    pages: "51-56"
-  - chapter: 5
-    pages: "67-72, 77-82"
 prerequisites:
   - module: "module-00-c-basics"
     lesson: "lesson-01"
-    reason: "需要理解变量声明、数据类型、作用域"
+    reason: "需要理解变量声明、数据类型、作用域、存储类型"
 difficulty: standard
-estimated_minutes: 50
-concepts: [控制流语句, 表达式与副作用, 操作符分类, 操作符优先级与结合性, 左值与右值, typedef]
+estimated_minutes: 55
+concepts:
+  - 表达式语句与副作用
+  - 控制流语句
+  - 操作符分类
+  - 左值与右值
+  - 隐式类型转换
+  - 优先级与求值顺序
+  - typedef
 status: draft
 ---
 
@@ -26,271 +33,263 @@ status: draft
 > 开始前确认这几个问题你能回答，否则回头补前序课程。
 
 1. 你能说出 C 的四种作用域和三种存储类型吗？→ 见 `lesson-01-program-structure.md`
-2. 你知道 C 中局部变量未初始化的后果吗？→ 见 `lesson-01-program-structure.md`
-3. 你知道 `#define` 和 `const` 的区别吗？→ 见 `lesson-01-program-structure.md`
+2. 你知道 `const int *p` 和 `int * const p` 的区别吗？→ 见 `lesson-01-program-structure.md`
+3. 你知道局部变量未初始化时值不确定（而静态变量默认为 0）吗？→ 见 `lesson-01-program-structure.md`
 
 ---
 
 ## 核心概念
 
-### 1. 控制流语句速览
+### 1. 表达式语句与副作用
 
 #### 是什么
 
-C 的控制流语句和大多数语言类似，但有一些独特之处需要特别注意。本节不逐一复习语法（你已有 C 基础），而是聚焦 C 的**特殊行为和常见陷阱**。
-
-C 的控制流语句：
-
-| 类别 | 语句 | 关键特点 |
-|------|------|---------|
-| 条件 | `if`/`else` | 条件是整数表达式，零为假，非零为真 |
-| 循环 | `while` | 先判断后执行 |
-| 循环 | `for` | while 的语法糖，三个表达式都可省略 |
-| 循环 | `do`-`while` | 先执行后判断，至少执行一次 |
-| 多分支 | `switch`/`case` | 必须显式 `break`，否则 fall-through |
-| 跳转 | `break`/`continue` | 只影响最内层循环 |
-
-**C 没有布尔类型**（C99 之前）。条件判断的规则很简单：**零是假，任何非零值都是真**。关系操作符（`>`、`==` 等）的结果是整型值 0 或 1，而不是布尔值 `true`/`false`。
-
-➕ **补充**：C99 引入了 `<stdbool.h>` 头文件，提供 `bool` 类型和 `true`/`false` 宏。但底层仍然是整数（`true` 是 1，`false` 是 0），只是让代码语义更清晰：
+C 没有"赋值语句"——赋值是一种**操作**，和加法、减法一样是表达式的一部分。你在表达式后面加一个分号 `;`，就把它变成了一条**表达式语句**（expression statement）。
 
 ```c
-#include <stdbool.h>
-
-bool is_valid = true;   /* 比 int is_valid = 1; 更有表达力 */
-if (is_valid) { ... }
+x = y + 3;    /* 这是"表达式语句"，不是"赋值语句" */
+y + 3;        /* 合法！但没有意义——计算了结果却没保存 */
+getchar();    /* 合法——读一个字符但丢弃返回值 */
+printf("Hi"); /* 返回值（打印的字符数）被丢弃，但 printf 的打印动作是有用的 */
 ```
 
-**for 与 while 的等价关系**——for 循环本质上是 while 的简写：
+最后两条语句虽然丢弃了返回值，但函数执行过程中产生了可观察的效果——这就是**副作用**（side effect）。`printf` 的"副作用"是往屏幕打字，`getchar` 的"副作用"是从输入流读走一个字符。
 
-```
-for (expr1; expr2; expr3)       等价于        expr1;
-    statement                                while (expr2) {
-                                                 statement
-                                                 expr3;
-                                             }
-```
+C 中还有两种特殊语句：
 
-```mermaid
-graph TD
-    A[expr1 初始化] --> B{expr2 条件}
-    B -->|非零 真| C[循环体 stmt]
-    C --> D[expr3 调整]
-    D --> B
-    B -->|零 假| E[循环结束]
-    C -->|break| E
-    C -->|continue| D
-```
-
-注意图中 `continue` 的跳转方向：在 `for` 循环中，`continue` 跳到 **expr3**（调整部分），然后重新检查条件。但在 `while` 循环中，`continue` 直接跳回条件判断——调整部分如果写在循环体末尾，就会被跳过。这是 `for` 和 `while` 的一个实际差异。
+- **空语句**：只有一个分号 `;`，什么也不做。适用于语法要求语句但不需要动作的场合
+- **代码块**：花括号 `{ }` 包裹的声明和语句列表，可以在语法要求一条语句的地方放多条语句
 
 #### 为什么重要
 
-- "零为假，非零为真"是 C 布尔判断的根本规则，不理解它就无法读懂条件表达式
-- `for` 和 `while` 的 `continue` 行为差异是隐蔽的 bug 来源
-- `switch` 的 fall-through 特性在其他语言中很少见，不了解就会写出诡异的逻辑
+- 理解"赋值是表达式"是读懂 `while ((ch = getchar()) != EOF)` 这类惯用写法的前提
+- 理解"副作用"是后续学习操作符求值顺序和未定义行为（UB）的基础——当多个副作用在同一表达式中出现且顺序不确定时，就是 UB
 
 #### 代码演示
 
-**dangling else 问题：**
-
 ```c
+/* expression_statement.c — 表达式语句与副作用演示 */
 #include <stdio.h>
 
 int main(void) {
-    int i = 1, j = 0;
+    int x = 0, y = 5;
 
-    /* else 从属于哪个 if？ */
-    if (i > 0)
-        if (j > 0)
-            printf("i > 0 and j > 0\n");
-    else
-        printf("this runs when?\n");
-    /* 缩进暗示 else 属于第一个 if，但实际上... */
+    /* 赋值是表达式，表达式有值：赋值表达式的值就是左操作数的新值 */
+    int a = (x = y + 3);  /* x 得到 8，a 也得到 8 */
+    printf("x = %d, a = %d\n", x, a);
+
+    /* 链式赋值：从右往左结合 */
+    int b, c;
+    b = c = 42;  /* 先 c = 42（值为 42），再 b = 42 */
+    printf("b = %d, c = %d\n", b, c);
+
+    /* printf 的返回值是打印的字符数，通常被丢弃 */
+    int chars_printed = printf("Hello!\n");
+    printf("上一行打印了 %d 个字符\n", chars_printed);
 
     return 0;
 }
 ```
 
 ```bash
-gcc -std=c99 -Wall -Wextra -g -o dangle dangle.c
-./dangle
-```
-
-输出：`this runs when?`
-
-**规则**：`else` 总是与最近的、未被匹配的 `if` 配对。这里 `else` 匹配的是第二个 `if (j > 0)`，不是第一个。当 `j == 0` 时进入 else 分支。
-
-**continue 在 for vs while 中的差异：**
-
-```c
-#include <stdio.h>
-
-int main(void) {
-    /* for 版本：正常工作 */
-    printf("for: ");
-    for (int i = 0; i < 5; i++) {
-        if (i == 2) continue;  /* 跳到 i++ */
-        printf("%d ", i);
-    }
-    printf("\n");
-
-    /* while 版本：如果不小心，会死循环 */
-    printf("while: ");
-    int j = 0;
-    while (j < 5) {
-        if (j == 2) {
-            j++;       /* 必须在 continue 前调整！ */
-            continue;  /* 跳到 while 条件判断 */
-        }
-        printf("%d ", j);
-        j++;
-    }
-    printf("\n");
-
-    return 0;
-}
-```
-
-```bash
-gcc -std=c99 -Wall -Wextra -g -o cont cont.c
-./cont
+gcc -std=c99 -Wall -Wextra -g -o expression_statement expression_statement.c
+./expression_statement
 ```
 
 输出：
 
 ```
-for: 0 1 3 4
-while: 0 1 3 4
+x = 8, a = 8
+b = 42, c = 42
+Hello!
+上一行打印了 7 个字符
 ```
-
-如果 while 版本中 `continue` 前没有 `j++`，`j` 永远是 2，死循环。
 
 #### 易错点
 
-❌ **错误：switch 忘写 break**
+**❌ 错误：写了无副作用的表达式语句**
 
 ```c
+/* no_effect.c — 无副作用的表达式语句 */
 #include <stdio.h>
 
 int main(void) {
-    int x = 1;
-    switch (x) {
-        case 1:
-            printf("one\n");
-            /* 忘了 break; —— 继续执行下一个 case！ */
-        case 2:
-            printf("two\n");
-        case 3:
-            printf("three\n");
-    }
+    int x = 10, y = 20;
+    x + y;       /* 计算了 30，然后丢弃——完全无意义 */
+    x == 10;     /* 比较了一下，然后丢弃——可能是 x = 10 的笔误？ */
+    printf("x = %d\n", x);
     return 0;
 }
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o no_effect no_effect.c
+# 编译器会警告：
+# warning: statement with no effect [-Wunused-value]
+# warning: statement has no effect [-Wunused-value]
+```
+
+**✅ 正确：只写有副作用的表达式语句**
+
+```c
+/* with_effect.c — 有副作用的表达式语句 */
+#include <stdio.h>
+
+int main(void) {
+    int x = 10;
+    x = x + 5;    /* 赋值是副作用 */
+    x++;           /* ++ 是副作用 */
+    printf("x = %d\n", x);  /* printf 的打印是副作用 */
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o with_effect with_effect.c
+./with_effect
 ```
 
 输出：
 
 ```
-one
-two
-three
-```
-
-`x` 是 1，却打印了 one、two、three 三行。这就是 **fall-through**：没有 `break` 时，执行会"穿透"到下一个 case。
-
-✅ **正确：每个 case 加 break（除非有意 fall-through 并注释说明）**
-
-```c
-#include <stdio.h>
-
-int main(void) {
-    int x = 1;
-    switch (x) {
-        case 1:
-            printf("one\n");
-            break;
-        case 2:
-            printf("two\n");
-            break;
-        case 3:
-            printf("three\n");
-            break;
-        default:
-            printf("other\n");
-            break;
-    }
-    return 0;
-}
+x = 16
 ```
 
 ---
 
-### 2. 表达式与副作用
+### 2. 控制流语句
 
 #### 是什么
 
-C 有一个很多初学者不习惯的设计：**C 没有"赋值语句"**。赋值 `=` 是一个操作符（operator），赋值操作是表达式（expression）的一种。
+C 的控制流语句和大多数语言类似，但有几处关键差异：
 
-```c
-x = y + 3;
+| 语句 | 语法 | 特别之处 |
+|------|------|---------|
+| `if`/`else` | `if (expr) stmt else stmt` | 用整型表示真假：0 为假，非零为真 |
+| `while` | `while (expr) stmt` | 测试在前，可能一次都不执行 |
+| `for` | `for (init; cond; adjust) stmt` | 三个表达式都可省略；continue 跳到 adjust |
+| `do`-`while` | `do stmt while (expr);` | 循环体至少执行一次 |
+| `switch` | `switch (expr) { case N: ... }` | **执行会贯穿 case 标签**（fall-through） |
+| `break` | `break;` | 跳出最内层循环或 switch |
+| `continue` | `continue;` | 跳过本次循环剩余部分 |
+| `goto` | `goto label;` | 仅用于跳出多层嵌套循环 |
+
+**switch 的 fall-through 是 C 最独特（也最容易出错）的控制流特性**：执行流从匹配的 case 标签进入后，会一直往下贯穿所有后续 case，直到遇到 `break` 或 switch 结束。
+
+**for 循环中 continue 的行为和 while 不同**——这是另一个常见陷阱：
+
+```mermaid
+graph TD
+    subgraph "for 循环"
+        F1["init"] --> F2{"cond?"}
+        F2 -->|真| F3["循环体"]
+        F3 --> F4["adjust"]
+        F3 -->|continue| F4
+        F4 --> F2
+        F2 -->|假| F5["结束"]
+    end
+
+    subgraph "while 循环"
+        W1{"cond?"} -->|真| W2["循环体<br/>（含 adjust）"]
+        W2 --> W1
+        W2 -->|continue| W1
+        W1 -->|假| W3["结束"]
+    end
 ```
 
-这不是"赋值语句"，而是一个**表达式语句（expression statement）**——一个表达式后面加上分号 `;` 就构成一条语句。
-
-表达式被求值后会产生一个结果。赋值表达式的结果就是赋值后左操作数的新值：
-
-```c
-a = 5;     /* 表达式的值是 5 */
-b = (a = 5);  /* a 先被赋值为 5，表达式值为 5，再赋给 b */
-```
-
-**副作用（side effect）**：表达式求值过程中对程序状态产生的改变。赋值操作的"副作用"就是修改了变量的值。`printf("hello")` 的副作用是在屏幕上输出字符。
-
-```c
-y + 3;        /* 合法语句，但没有副作用，结果被丢弃 */
-getchar();    /* 合法，副作用是消耗一个输入字符 */
-a++;          /* 合法，副作用是 a 自增 */
-```
-
-编译器对 `y + 3;` 这种"无副作用"的表达式语句通常会报警告。
+在 `for` 中，`continue` 跳到**调整部分**（adjust），然后再测试条件。在 `while` 中，`continue` 直接跳到**条件测试**，如果调整语句写在循环体里，它会被跳过。
 
 #### 为什么重要
 
-理解"赋值是表达式"之后，很多 C 惯用法就能读懂了：
-
-```c
-/* 在条件中赋值 + 判断（经典惯用法）*/
-while ((ch = getchar()) != EOF) {
-    /* ch 先被赋值为 getchar() 的返回值 */
-    /* 然后这个值与 EOF 比较 */
-    putchar(ch);
-}
-```
-
-如果不理解赋值是表达式，就看不懂这个 `(ch = getchar()) != EOF` 为什么合法。
+- switch 的 fall-through 在所有 C 程序中有 97% 需要每个 case 加 break，但剩下 3% 利用了 fall-through 特性（如字符分类计数）
+- while 和 for 中 continue 的差异经常导致死循环 bug
+- goto 虽然被普遍排斥，但在跳出多层嵌套循环时是唯一简洁的方案
 
 #### 代码演示
 
+**switch fall-through 演示：**
+
 ```c
+/* switch_demo.c — switch fall-through 演示 */
 #include <stdio.h>
 
 int main(void) {
-    int a, b, c;
+    int command = 2;
 
-    /* 连续赋值：从右到左结合 */
-    a = b = c = 10;
-    /* 等价于 a = (b = (c = 10)); */
-    printf("a=%d, b=%d, c=%d\n", a, b, c);
+    printf("=== 没有 break 的 switch（fall-through）===\n");
+    switch (command) {
+        case 1:
+            printf("case 1\n");
+            /* 没有 break，继续执行下一个 case！ */
+        case 2:
+            printf("case 2\n");
+            /* 没有 break，继续！ */
+        case 3:
+            printf("case 3\n");
+    }
+    /* command 是 2，但输出了 case 2 和 case 3 */
 
-    /* 赋值表达式有返回值 */
-    int x;
-    printf("赋值表达式的值: %d\n", (x = 42));
+    printf("\n=== 有 break 的 switch ===\n");
+    switch (command) {
+        case 1:
+            printf("case 1\n");
+            break;
+        case 2:
+            printf("case 2\n");
+            break;         /* ← 只输出 case 2 */
+        case 3:
+            printf("case 3\n");
+            break;
+        default:
+            printf("unknown\n");
+            break;         /* default 后也加 break，便于以后添加 case */
+    }
 
-    /* 经典惯用法：在 while 条件中赋值并判断 */
-    int ch;
-    printf("请输入一行文字（回车结束）: ");
-    while ((ch = getchar()) != '\n' && ch != EOF) {
-        putchar(ch);  /* 回显每个字符 */
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o switch_demo switch_demo.c
+./switch_demo
+```
+
+输出：
+
+```
+=== 没有 break 的 switch（fall-through）===
+case 2
+case 3
+
+=== 有 break 的 switch ===
+case 2
+```
+
+**for vs while 中 continue 的差异：**
+
+```c
+/* continue_diff.c — for 和 while 中 continue 的区别 */
+#include <stdio.h>
+
+int main(void) {
+    /* for 循环：continue 跳到调整部分（i++），不会死循环 */
+    printf("for 循环：");
+    for (int i = 0; i < 5; i++) {
+        if (i == 2) continue;  /* 跳过 i==2，但 i++ 仍会执行 */
+        printf("%d ", i);
+    }
+    printf("\n");
+
+    /* while 循环：continue 跳到条件测试，跳过了 i++ */
+    printf("while 循环（注意 2 被跳过）：");
+    int i = 0;
+    while (i < 5) {
+        if (i == 2) {
+            i++;       /* 必须在 continue 前手动调整，否则死循环！ */
+            continue;
+        }
+        printf("%d ", i);
+        i++;
     }
     printf("\n");
 
@@ -299,51 +298,151 @@ int main(void) {
 ```
 
 ```bash
-gcc -std=c99 -Wall -Wextra -g -o expr expr.c
-./expr
+gcc -std=c99 -Wall -Wextra -g -o continue_diff continue_diff.c
+./continue_diff
 ```
+
+输出：
+
+```
+for 循环：0 1 3 4
+while 循环（注意 2 被跳过）：0 1 3 4
+```
+
+> ➕ **C99 新特性：for 循环中声明变量**
+>
+> 原书基于 C89 标准，变量必须在代码块开头声明。C99 起允许在 `for` 的初始化部分直接声明变量：
+>
+> ```c
+> /* C89 风格 */
+> int i;
+> for (i = 0; i < 10; i++) { ... }
+>
+> /* C99 风格（推荐）*/
+> for (int i = 0; i < 10; i++) { ... }
+> /* i 在 for 循环结束后不再可见 */
+> ```
+>
+> C99 风格更好——`i` 的作用域被限制在 `for` 循环内部，不会意外污染外层作用域。本书使用 `-std=c99`，所有示例都采用这种风格。
 
 #### 易错点
 
-❌ **错误：把 `=`（赋值）写成 `==`（比较），或反过来**
+**❌ 错误：switch 忘写 break**
 
 ```c
+/* switch_no_break.c — 忘写 break 的典型 bug */
 #include <stdio.h>
 
 int main(void) {
-    int x = 0;
+    int grade = 2;  /* 假设 1=优, 2=良, 3=及格 */
 
-    if (x = 5) {  /* 赋值！x 变成 5，表达式值为 5（非零=真）*/
-        printf("这永远会执行\n");
+    switch (grade) {
+        case 1:
+            printf("优秀！\n");
+        case 2:
+            printf("良好！\n");
+        case 3:
+            printf("及格！\n");
     }
-
+    /* grade 是 2，但输出了"良好！"和"及格！" */
     return 0;
 }
 ```
 
 ```bash
-gcc -std=c99 -Wall -Wextra -g -o assign assign.c
-# warning: suggest parentheses around assignment used as truth value
+gcc -std=c99 -Wall -Wextra -g -o switch_no_break switch_no_break.c
+./switch_no_break
 ```
 
-GCC 的 `-Wall` 会警告这个问题。如果你确实想在 `if` 中赋值并判断，加上额外的括号消除警告：`if ((x = 5))`。
+输出：
 
-✅ **正确：用 `==` 做比较**
+```
+良好！
+及格！
+```
+
+**✅ 正确：每个 case 加 break，有意 fall-through 时加 `/* FALL THROUGH */` 注释**
 
 ```c
+/* switch_correct.c — 正确使用 break */
 #include <stdio.h>
 
 int main(void) {
-    int x = 0;
+    int grade = 2;
 
-    if (x == 5) {  /* 比较 */
-        printf("x is 5\n");
-    } else {
-        printf("x is not 5\n");
+    switch (grade) {
+        case 1:
+            printf("优秀！\n");
+            break;
+        case 2:
+            printf("良好！\n");
+            break;
+        case 3:
+            printf("及格！\n");
+            break;
+        default:
+            printf("未知等级\n");
+            break;
     }
-
     return 0;
 }
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o switch_correct switch_correct.c
+./switch_correct
+```
+
+输出：
+
+```
+良好！
+```
+
+**❌ 错误：while 循环中 continue 跳过了调整**
+
+```c
+/* continue_bug.c — continue 导致死循环 */
+#include <stdio.h>
+
+int main(void) {
+    int i = 0;
+    while (i < 10) {
+        if (i == 5) {
+            continue;  /* 跳过了下面的 i++，i 永远是 5 → 死循环！ */
+        }
+        printf("%d ", i);
+        i++;
+    }
+    return 0;
+}
+```
+
+**✅ 正确：用 for 循环，或者在 continue 前调整**
+
+```c
+/* continue_fix.c — 用 for 循环避免问题 */
+#include <stdio.h>
+
+int main(void) {
+    for (int i = 0; i < 10; i++) {
+        if (i == 5) continue;  /* i++ 在调整部分，不会被跳过 */
+        printf("%d ", i);
+    }
+    printf("\n");
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o continue_fix continue_fix.c
+./continue_fix
+```
+
+输出：
+
+```
+0 1 2 3 4 6 7 8 9
 ```
 
 ---
@@ -357,418 +456,798 @@ C 的操作符按功能分为以下几大类：
 | 类别 | 操作符 | 说明 |
 |------|--------|------|
 | 算术 | `+` `-` `*` `/` `%` | `%` 只用于整数 |
-| 关系 | `>` `>=` `<` `<=` `==` `!=` | 结果为 0 或 1 |
-| 逻辑 | `&&` `\|\|` `!` | 短路求值 |
-| 位 | `&` `\|` `^` `~` `<<` `>>` | 逐位操作 |
-| 赋值 | `=` `+=` `-=` `*=` 等 | 复合赋值更安全 |
-| 单目 | `++` `--` `&` `*` `sizeof` `!` `~` `-` | 只接受一个操作数 |
-| 条件 | `? :` | 三目操作符 |
-| 逗号 | `,` | 顺序求值，结果为最后一个表达式的值 |
+| 关系 | `>` `>=` `<` `<=` `!=` `==` | 结果是 `int`（0 或 1），不是布尔值 |
+| 逻辑 | `&&` `||` `!` | **短路求值**：左操作数决定结果后不再求右操作数 |
+| 位操作 | `&` `|` `^` `~` `<<` `>>` | 对整数的**各个位**进行操作 |
+| 赋值 | `=` `+=` `-=` `*=` `/=` `%=` `<<=` `>>=` `&=` `^=` `|=` | 复合赋值：`a += b` 等价于 `a = a + (b)` |
+| 单目 | `++` `--` `+` `-` `!` `~` `*` `&` `sizeof` `(type)` | 只接受一个操作数 |
+| 条件 | `? :` | 三目操作符：`cond ? val1 : val2` |
+| 逗号 | `,` | 从左到右求值，整个表达式的值是最后一个表达式的值 |
+| 其他 | `[]` `()` `.` `->` | 下标引用、函数调用、结构成员访问（后续模块详讲） |
 
-几个关键要点：
+几个关键特性：
 
-**整数除法截断**：两个整数相除，结果向零截断（丢弃小数部分）。
+**短路求值**（short-circuit evaluation）：`&&` 和 `||` 会控制求值顺序。如果左操作数已经决定了整个表达式的值，右操作数就不会被求值。这不是优化，而是**语言保证**。
 
-```c
-5 / 2    /* 结果是 2，不是 2.5 */
--7 / 2   /* 结果是 -3（向零截断）*/
-5 % 2    /* 结果是 1（余数）*/
-```
+**前缀 vs 后缀 `++`/`--`**：
+- `++a`（前缀）：先增加 `a`，返回增加**后**的值
+- `a++`（后缀）：先复制 `a` 的值，增加 `a`，返回增加**前**的值
+- 两种形式的结果都是值的**拷贝**，不是变量本身——所以 `++a = 10;` 是非法的
 
-**短路求值（short-circuit evaluation）**：`&&` 和 `||` 保证从左到右求值，一旦结果确定就停止：
-
-```c
-/* 如果 p 是 NULL，*p 不会被执行（避免段错误）*/
-if (p != NULL && *p > 0) { ... }
-
-/* 如果 a != 0 为真，b != 0 不会被检查 */
-if (a != 0 || b != 0) { ... }
-```
-
-**前缀 vs 后缀自增/自减**：
-
-```c
-int a = 5;
-int b = a++;   /* b = 5, a = 6 —— 先用后加 */
-int c = ++a;   /* c = 7, a = 7 —— 先加后用 */
-```
+**布尔值**：C 没有布尔类型（C99 有 `_Bool`，但很少直接用），用整数表示真假。零是假，任何非零值都是真。但要注意：不同的非零值虽然都是"真"，但它们**不相等**。
 
 #### 为什么重要
 
-- 整数除法截断是初学者最常遇到的"算不对"问题
-- 短路求值不仅是优化，更是一种**安全保障**（如上面的 NULL 检查）
-- `&`/`|` 和 `&&`/`||` 混淆是难以发现的逻辑 bug
+- **短路求值**是编写安全检查代码的关键模式：先检查边界，再访问数组
+- `==` 和 `=` 只差一个字符但含义完全不同，是 C 新手最常犯的错误之一
+- 逻辑操作符 `&&`/`||` 和位操作符 `&`/`|` 看起来像，但行为完全不同
+- `++`/`--` 的前缀和后缀形式在复杂表达式中容易产生混淆
 
 #### 代码演示
 
+**短路求值防越界：**
+
 ```c
+/* short_circuit.c — 短路求值安全检查 */
 #include <stdio.h>
 
 int main(void) {
-    /* 整数除法截断 */
-    printf("5 / 2 = %d\n", 5 / 2);        /* 2 */
-    printf("5.0 / 2 = %f\n", 5.0 / 2);    /* 2.500000 */
-    printf("-7 / 2 = %d\n", -7 / 2);      /* -3 */
+    int arr[] = {10, 20, 30, 40, 50};
+    int n = 5;
+    int target = 30;
+    int found = 0;
 
-    /* 短路求值 */
-    int x = 0;
-    int y = 5;
-    if (x != 0 && y / x > 1) {
-        /* y/x 不会执行，因为 x != 0 已经是假 */
-        printf("不会到这里\n");
+    for (int i = 0; i < 10; i++) {  /* 故意用 10，超过数组大小 */
+        /* 短路求值保证：i >= n 时不会访问 arr[i] */
+        if (i < n && arr[i] == target) {
+            printf("找到 %d，位置 %d\n", target, i);
+            found = 1;
+            break;
+        }
     }
-    printf("安全通过，没有除以零\n");
-
-    /* 条件操作符 */
-    int a = 10, b = 20;
-    int max = (a > b) ? a : b;
-    printf("max = %d\n", max);  /* 20 */
-
-    /* 复合赋值 */
-    int count = 100;
-    count += 5;    /* 等价于 count = count + 5 */
-    count *= 2;    /* 等价于 count = count * 2 */
-    printf("count = %d\n", count);  /* 210 */
+    if (!found) {
+        printf("未找到 %d\n", target);
+    }
 
     return 0;
 }
 ```
 
 ```bash
-gcc -std=c99 -Wall -Wextra -g -o operators operators.c
-./operators
+gcc -std=c99 -Wall -Wextra -g -o short_circuit short_circuit.c
+./short_circuit
 ```
 
-#### 易错点
+输出：
 
-❌ **错误：混淆逻辑操作符和位操作符**
+```
+找到 30，位置 2
+```
+
+**前缀 vs 后缀 ++：**
 
 ```c
+/* prefix_postfix.c — 前缀和后缀 ++ 的区别 */
 #include <stdio.h>
 
 int main(void) {
-    int a = 1, b = 2;
+    int a = 10, b = 10;
 
-    /* 位与：1 & 2 = 0（二进制 01 & 10 = 00）*/
-    if (a & b) {
-        printf("位与：不会到这里\n");
-    }
+    int c = ++a;  /* a 先变 11，c 得到 11 */
+    int d = b++;  /* 先复制 b 的值 10 给 d，然后 b 变 11 */
 
-    /* 逻辑与：1 && 2 = 1（两个都非零）*/
-    if (a && b) {
-        printf("逻辑与：会到这里\n");
-    }
+    printf("a = %d, c = %d\n", a, c);  /* a=11, c=11 */
+    printf("b = %d, d = %d\n", b, d);  /* b=11, d=10 */
 
     return 0;
 }
 ```
 
-`a & b` 是**位与**，结果是 0（假）。`a && b` 是**逻辑与**，结果是 1（真）。一个字符的差别，结果完全相反。
+```bash
+gcc -std=c99 -Wall -Wextra -g -o prefix_postfix prefix_postfix.c
+./prefix_postfix
+```
 
-✅ **正确：逻辑判断用 `&&`/`||`，位操作用 `&`/`|`/`^`**
+输出：
+
+```
+a = 11, c = 11
+b = 11, d = 10
+```
+
+**复合赋值简化位操作：**
 
 ```c
+/* compound_assign.c — 复合赋值操作符 */
 #include <stdio.h>
 
 int main(void) {
-    int a = 1, b = 2;
-
-    /* 逻辑判断 */
-    if (a > 0 && b > 0) {
-        printf("a 和 b 都是正数\n");
-    }
-
-    /* 位操作：设置/清除/检查特定位 */
     unsigned int flags = 0;
-    flags |= (1 << 3);   /* 设置第 3 位 */
-    if (flags & (1 << 3)) {
-        printf("第 3 位已设置\n");
-    }
 
-    return 0;
-}
-```
+    /* 设置第 3 位（位编号从 0 开始） */
+    flags |= 1 << 3;     /* 等价于 flags = flags | (1 << 3) */
+    printf("设置第 3 位后: 0x%X (%u)\n", flags, flags);
 
----
+    /* 设置第 0 位 */
+    flags |= 1 << 0;
+    printf("设置第 0 位后: 0x%X (%u)\n", flags, flags);
 
-### 4. 操作符优先级与结合性
-
-#### 是什么
-
-当一个表达式中有多个操作符时，**优先级（precedence）** 决定它们如何分组，**结合性（associativity）** 决定同优先级操作符的分组方向。
-
-**核心区分**：优先级决定的是**分组**（哪些操作数属于哪个操作符），而**不是求值顺序**。
-
-以下是精简的实用优先级表（从高到低），只列日常最常遇到的：
-
-```
-优先级   操作符                    结合性     记忆口诀
-──────────────────────────────────────────────────
- 1       ()  []  ->  .            L→R       后缀/访问
- 2       !  ~  ++  --  *  &       R→L       单目
-         sizeof  (类型)
- 3       *  /  %                  L→R       乘除
- 4       +  -                     L→R       加减
- 5       <<  >>                   L→R       移位
- 6       <  <=  >  >=            L→R       关系
- 7       ==  !=                   L→R       相等
- 8       &                        L→R       位与
- 9       ^                        L→R       位异或
-10       |                        L→R       位或
-11       &&                       L→R       逻辑与
-12       ||                       L→R       逻辑或
-13       ?:                       R→L       条件
-14       =  +=  -=  等            R→L       赋值
-15       ,                        L→R       逗号
-```
-
-**实用原则：不确定时加括号。** 不需要背诵整张优先级表。你只需记住几个最常见的陷阱：
-
-1. `*p++` 是 `*(p++)`，不是 `(*p)++` —— 后缀 `++` 优先级高于 `*`
-2. `a & b == c` 是 `a & (b == c)` —— `==` 优先级高于 `&`
-3. `a = b = c` 是 `a = (b = c)` —— 赋值是右结合的
-
-#### 为什么重要
-
-优先级错误是 C 中最隐蔽的 bug 之一。代码能编译通过，运行结果却不对，而且很难通过肉眼看出问题。
-
-原书的建议非常实用：**与其背优先级表，不如养成加括号的习惯。** 括号不会影响性能，却能消除所有歧义。
-
-#### 代码演示
-
-**经典陷阱：位操作符优先级低于比较操作符**
-
-```c
-#include <stdio.h>
-
-int main(void) {
-    unsigned int flags = 0x0F;  /* 二进制 00001111 */
-
-    /* 陷阱：== 优先级高于 & */
-    if (flags & 0x04 == 0x04) {
-        /* 实际解析为 flags & (0x04 == 0x04)
-           即 flags & 1，即 0x0F & 1 = 1（真）
-           看似"正确"但逻辑完全错误 */
-        printf("陷阱版本：看似对了\n");
-    }
-
-    /* 正确：加括号明确分组 */
-    if ((flags & 0x04) == 0x04) {
-        printf("正确版本：第 2 位确实被设置了\n");
-    }
-
-    /* 经典：*p++ 的优先级 */
-    int arr[] = {10, 20, 30};
-    int *p = arr;
-    printf("*p++ = %d\n", *p++);   /* 输出 10，然后 p 指向 arr[1] */
-    printf("*p   = %d\n", *p);     /* 输出 20 */
-
-    /* 赋值的右结合性 */
-    int a, b, c;
-    a = b = c = 42;  /* 等价于 a = (b = (c = 42)) */
-    printf("a=%d, b=%d, c=%d\n", a, b, c);
+    /* 清除第 3 位 */
+    flags &= ~(1 << 3);  /* 等价于 flags = flags & ~(1 << 3) */
+    printf("清除第 3 位后: 0x%X (%u)\n", flags, flags);
 
     return 0;
 }
 ```
 
 ```bash
-gcc -std=c99 -Wall -Wextra -g -o prec prec.c
-./prec
+gcc -std=c99 -Wall -Wextra -g -o compound_assign compound_assign.c
+./compound_assign
+```
+
+输出：
+
+```
+设置第 3 位后: 0x8 (8)
+设置第 0 位后: 0x9 (9)
+清除第 3 位后: 0x1 (1)
 ```
 
 #### 易错点
 
-❌ **错误：混淆优先级和求值顺序**
+**❌ 错误：`==` 写成 `=`**
 
 ```c
-#include <stdio.h>
-
-int main(void) {
-    int a = 1;
-    /* 下面这个表达式的结果是未定义行为！ */
-    /* int b = a++ + a++;  ← 不要这样写 */
-
-    /* 优先级告诉你 a++ + a++ 的分组是 (a++) + (a++)
-       但两个 a++ 的求值顺序是未定义的
-       编译器可以先算左边的 a++ 也可以先算右边的 */
-
-    /* 安全的写法 */
-    int x = a++;
-    int y = a++;
-    int b = x + y;
-    printf("b = %d\n", b);  /* 可预测的结果 */
-
-    return 0;
-}
-```
-
-**原则**：不要在同一个表达式中对同一个变量进行多次修改。
-
-✅ **正确：拆成多条语句，确保求值顺序明确**
-
----
-
-### 5. 左值与右值
-
-#### 是什么
-
-左值（lvalue, locator value）和右值（rvalue, read value）是 C 语言中一对基础概念：
-
-- **左值**：标识了一个**内存位置**的表达式。它有地址，你可以用 `&` 取它的地址
-- **右值**：一个**纯粹的值**，不对应特定的内存位置。它只能被读取
-
-名字来源：左值能出现在赋值号 `=` 的**左边**（也能出现在右边），右值只能出现在**右边**。
-
-```
-判断一个表达式是左值还是右值：
-┌───────────────────────────────────┐
-│ 它有一个可以被 & 取到的地址吗？      │
-│                                   │
-│   是 → 左值（如 x, a[i], *p）      │
-│   否 → 右值（如 42, x+1, &x）      │
-└───────────────────────────────────┘
-```
-
-常见的左值和右值：
-
-| 表达式 | 左值/右值 | 为什么 |
-|--------|---------|-------|
-| `x`（变量） | 左值 | 变量有固定的内存地址 |
-| `42`（字面量） | 右值 | 字面量没有可取地址的位置 |
-| `a[i]` | 左值 | 数组元素有确定的内存位置 |
-| `*p` | 左值 | 解引用指向一个内存位置 |
-| `a + b` | 右值 | 运算结果是临时值，没有固定位置 |
-| `&x` | 右值 | 地址值本身是一个右值 |
-| `func()` | 通常右值 | 函数返回值是临时的 |
-
-**关键规则**：左值在需要右值的地方使用时，会自动读取其中存储的值。但右值不能当左值用。
-
-#### 为什么重要
-
-理解左值/右值是理解后续所有指针概念的基础：
-
-- `&` 操作符的操作数必须是左值（你不能 `&42`）
-- `*p` 为什么能出现在 `=` 左边？因为它是左值
-- 数组名不是左值（不能 `arr = ...`），但 `arr[i]` 是左值——这个区别在数组模块会详细讲
-
-原书中操作符优先级表的 `lexp` 和 `rexp` 标记就表示该操作符需要左值操作数还是右值操作数。
-
-#### 代码演示
-
-```c
+/* eq_vs_assign.c — == 和 = 混淆 */
 #include <stdio.h>
 
 int main(void) {
     int x = 10;
-    int arr[3] = {1, 2, 3};
-    int *p = &x;
 
-    /* 左值示例 */
-    x = 20;          /* x 是左值，可以被赋值 */
-    arr[1] = 99;     /* arr[1] 是左值 */
-    *p = 30;         /* *p 是左值，通过指针修改 x */
-
-    printf("x = %d\n", x);         /* 30 */
-    printf("arr[1] = %d\n", arr[1]); /* 99 */
-
-    /* 左值当右值用：自动读取存储的值 */
-    int y = x;       /* x 在右边，读取其值 30 */
-    int z = x + 1;   /* x 在表达式中，读取值 */
-    printf("y = %d, z = %d\n", y, z);
-
-    /* 以下是非法的（右值不能当左值用）：*/
-    /* 42 = x;         ← 编译错误：字面量不是左值 */
-    /* (x + 1) = 5;    ← 编译错误：表达式结果不是左值 */
-    /* &42;            ← 编译错误：不能取右值的地址 */
+    if (x = 5) {      /* 这是赋值！x 变成 5，表达式值为 5（非零=真） */
+        printf("这里永远会执行，x 已经变成 %d\n", x);
+    }
+    /* 编译器会警告: suggest parentheses around assignment used as truth value */
 
     return 0;
 }
 ```
 
 ```bash
-gcc -std=c99 -Wall -Wextra -g -o lvalue lvalue.c
-./lvalue
+gcc -std=c99 -Wall -Wextra -g -o eq_vs_assign eq_vs_assign.c
+./eq_vs_assign
 ```
 
-#### 易错点
+输出：
 
-❌ **错误：以为所有变量名都是左值**
+```
+这里永远会执行，x 已经变成 5
+```
+
+**✅ 正确：使用 `==` 进行比较**
 
 ```c
+/* eq_correct.c — 正确使用 == */
 #include <stdio.h>
 
 int main(void) {
-    int arr[3] = {1, 2, 3};
+    int x = 10;
 
-    /* arr 是数组名，虽然看起来像变量，但它不是可修改的左值 */
-    /* arr = NULL;  ← 编译错误：assignment to expression with array type */
+    if (x == 5) {     /* 比较：x 是 10，不等于 5，条件为假 */
+        printf("不会执行\n");
+    } else {
+        printf("x 是 %d，不是 5\n", x);
+    }
 
-    /* 但 arr[0] 是左值 */
-    arr[0] = 100;  /* 合法 */
-
-    printf("arr[0] = %d\n", arr[0]);
     return 0;
 }
 ```
 
-数组名在大多数表达式中会退化为指向首元素的指针（右值），不能被赋值。这个概念会在 module-03 详细展开。
+```bash
+gcc -std=c99 -Wall -Wextra -g -o eq_correct eq_correct.c
+./eq_correct
+```
 
-✅ **正确理解：左值的关键是"可定位"**
+输出：
 
-左值的判断标准不是"是不是变量名"，而是"是不是标识了一个确定的内存位置"。`*p`、`arr[i]`、`struct.member` 都是左值，它们未必是简单的变量名，但都指向一个确定的位置。
+```
+x 是 10，不是 5
+```
+
+**❌ 错误：位操作符 `&` 和逻辑操作符 `&&` 混淆**
+
+```c
+/* bit_vs_logic.c — & 和 && 的区别 */
+#include <stdio.h>
+
+int main(void) {
+    int a = 1, b = 2;
+
+    /* 两个都是非零（"真"），所以逻辑 AND 为真 */
+    printf("a && b = %d\n", a && b);  /* 1（真） */
+
+    /* 但位 AND：0001 & 0010 = 0000 → 0（假！） */
+    printf("a & b  = %d\n", a & b);   /* 0（假！） */
+
+    /* 更危险的例子 */
+    if (a & b) {
+        printf("不会执行：位 AND 结果是 0\n");
+    }
+    if (a && b) {
+        printf("会执行：逻辑 AND 结果是真\n");
+    }
+
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o bit_vs_logic bit_vs_logic.c
+./bit_vs_logic
+```
+
+输出：
+
+```
+a && b = 1
+a & b  = 0
+会执行：逻辑 AND 结果是真
+```
+
+#### ⭐ 深入：有符号右移是实现定义行为
+
+> 以下内容为深层原理，理解它有助于加深认识，但不影响日常使用。跳过不影响后续学习。
+
+对无符号整数执行右移 `>>` 时，C 标准保证执行**逻辑移位**（高位补 0）。但对有符号负数右移时，标准没有规定是逻辑移位还是**算术移位**（高位补符号位）。
+
+```
+无符号 10010110 >> 2 → 00100101 （逻辑移位，高位补 0）
+有符号 10010110 >> 2 → 11100101 （算术移位，高位补 1）或 00100101（逻辑移位）
+```
+
+大多数现代编译器（包括 GCC）对有符号数执行算术移位，但这不是标准保证的。如果你的代码依赖移位行为，**使用无符号类型**来避免歧义。
 
 ---
 
-### 6. typedef
+### 4. 左值与右值
 
 #### 是什么
 
-`typedef` 为已有的类型创建一个新的名字（别名）。它的语法和变量声明完全相同，只是在最前面加上 `typedef` 关键字：
+**左值**（lvalue）和**右值**（rvalue）是 C 中表达式的两种分类：
+
+- **左值**：标识一个**内存位置**的表达式，可以出现在赋值号 `=` 的左边
+- **右值**：只代表一个**值**的表达式，不能出现在赋值号左边
 
 ```c
-/* 变量声明：ptr_to_char 是一个指向 char 的指针变量 */
-char *ptr_to_char;
-
-/* typedef：ptr_to_char 变成了"指向 char 的指针"类型的别名 */
-typedef char *ptr_to_char;
-
-/* 现在可以用 ptr_to_char 声明变量 */
-ptr_to_char name;  /* name 是 char * 类型 */
+a = b + 25;
 ```
+
+- `a` 是左值——它标识了一个可以存储结果的位置
+- `b + 25` 是右值——它代表一个计算出来的值，但不对应特定的内存位置
+
+关键规则：**左值可以当右值用（取出它存储的值），但右值不能当左值用（没有位置可以存东西）。**
+
+哪些表达式是左值？
+
+| 左值表达式 | 例子 | 说明 |
+|-----------|------|------|
+| 变量名 | `x` | 最简单的左值 |
+| 解引用 | `*p` | 指针所指位置（module-01 详讲） |
+| 下标引用 | `a[i]` | 数组元素位置（module-03 详讲） |
+| 结构成员 | `s.member`、`p->member` | 结构体成员位置（module-05 详讲） |
+
+哪些**不是**左值？
+
+| 非左值 | 例子 | 原因 |
+|--------|------|------|
+| 字面量常量 | `42`、`3.14` | 常量没有可修改的位置 |
+| 算术表达式 | `a + b` | 结果存在临时位置，无法引用 |
+| 函数返回值 | `func()` | 返回的是值的拷贝 |
+| `++a` 的结果 | `++a` | 返回的是 `a` 值的拷贝，不是 `a` 本身 |
 
 #### 为什么重要
 
-- **简化复杂声明**：后续会遇到函数指针、指向数组的指针等复杂类型，typedef 是驯服它们的利器
-- **提高可移植性**：`typedef unsigned long size_t;` 只需改一处 typedef，所有使用 `size_t` 的地方自动适配
-- **增强可读性**：`typedef struct node Node;` 让代码更简洁
+- 赋值号左边必须是左值，否则编译错误
+- `++` 和 `--` 需要左值操作数（因为要修改变量的值）
+- 理解左值是读懂指针表达式的前提——`*p` 是左值，所以 `*p = 10;` 合法
+- module-01 中指针和间接访问会大量使用这个概念
 
 #### 代码演示
 
 ```c
+/* lvalue_rvalue.c — 左值与右值演示 */
 #include <stdio.h>
 
-/* 基本用法 */
-typedef int Length;        /* Length 是 int 的别名 */
-typedef char *String;      /* String 是 char * 的别名 */
+int main(void) {
+    int x = 10;
+    int *p = &x;       /* &x 取左值 x 的地址 */
 
-/* 更复杂的用法（预告，后续模块详解） */
-typedef int (*MathFunc)(int, int);  /* 函数指针类型别名 */
+    /* 左值示例 */
+    x = 42;            /* x 是左值：标识一个内存位置 */
+    *p = 99;           /* *p 是左值：指针指向的位置 */
 
-int add(int a, int b) {
-    return a + b;
+    int arr[3] = {1, 2, 3};
+    arr[1] = 100;      /* arr[1] 是左值：数组第 2 个元素 */
+
+    printf("x = %d, arr[1] = %d\n", x, arr[1]);
+
+    /* 右值示例——以下都不能放在 = 左边 */
+    /* 42 = x;          ❌ 编译错误：字面量不是左值 */
+    /* x + y = 10;      ❌ 编译错误：表达式结果不是左值 */
+    /* ++x = 10;        ❌ 编译错误：++x 返回的是值的拷贝 */
+
+    /* 左值当右值用：取出存储的值 */
+    int z = x;         /* x 作为右值，取出它的值 99 赋给 z */
+    printf("z = %d\n", z);
+
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o lvalue_rvalue lvalue_rvalue.c
+./lvalue_rvalue
+```
+
+输出：
+
+```
+x = 99, arr[1] = 100
+z = 99
+```
+
+#### 易错点
+
+**❌ 错误：对右值赋值**
+
+```c
+/* rvalue_error.c — 对右值赋值 */
+#include <stdio.h>
+
+int main(void) {
+    int a = 10, b = 20;
+    a + b = 30;    /* ❌ 编译错误：a + b 不是左值 */
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o rvalue_error rvalue_error.c
+# error: lvalue required as left operand of assignment
+```
+
+**✅ 正确：只对左值赋值**
+
+```c
+/* lvalue_correct.c — 正确：赋值给左值 */
+#include <stdio.h>
+
+int main(void) {
+    int a = 10, b = 20;
+    int c = a + b;  /* a + b 是右值，赋给左值 c */
+    printf("c = %d\n", c);
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o lvalue_correct lvalue_correct.c
+./lvalue_correct
+```
+
+输出：
+
+```
+c = 30
+```
+
+---
+
+### 5. 隐式类型转换
+
+#### 是什么
+
+当一个表达式中混合了不同类型的操作数时，C 会在运算前自动进行类型转换。这叫**隐式类型转换**（implicit type conversion），有两种主要机制：
+
+**1. 整型提升（integral promotion）**
+
+`char` 和 `short` 在参与运算前，会先被提升为 `int`（如果 `int` 能容纳其所有值）或 `unsigned int`。
+
+```c
+char a = 100, b = 100;
+int result = a + b;  /* a 和 b 先提升为 int，再做加法 */
+/* 结果是 200，不会因为 char 范围（-128~127）而溢出 */
+```
+
+**2. 寻常算术转换（usual arithmetic conversion）**
+
+当两个操作数类型不同时，"较小"的类型自动转换为"较大"的类型：
+
+```
+int → unsigned int → long → unsigned long → long long → float → double → long double
+                                                         ↑ 转换方向：向上转换
+```
+
+**3. 赋值时的截断**
+
+将"较大"类型的值赋给"较小"类型的变量时，值会被截断：
+
+```c
+int x = 100000;
+short s = x;     /* x 被截断，s 的值取决于 short 的大小 */
+float f = 3.14;
+int i = f;       /* 小数部分被舍弃，i == 3（不是四舍五入！） */
+```
+
+#### 为什么重要
+
+- **signed/unsigned 混合比较**是最常见的隐式转换陷阱——`-1 < 1u` 的结果是 `false`
+- `getchar()` 返回 `int` 而非 `char`，就是为了避免 `EOF` 被截断
+- 浮点转整型时直接截断而非四舍五入，经常让人措手不及
+- 整型溢出在有符号类型中是未定义行为，在无符号类型中是回绕（wrap around）
+
+#### 代码演示
+
+```c
+/* implicit_conv.c — 隐式类型转换演示 */
+#include <stdio.h>
+
+int main(void) {
+    /* 1. 整型提升 */
+    char a = 100, b = 100;
+    printf("char + char = %d（提升为 int 后运算，不溢出）\n", a + b);
+
+    /* 2. 算术转换 */
+    int i = 5;
+    double d = 2.5;
+    printf("int / double = %f（int 提升为 double）\n", i / d);
+
+    /* 3. 整除 vs 浮点除法 */
+    printf("5 / 2 = %d（整数除整数 → 整除）\n", 5 / 2);
+    printf("5.0 / 2 = %f（有浮点数 → 浮点除法）\n", 5.0 / 2);
+
+    /* 4. 赋值截断 */
+    double pi = 3.14159;
+    int truncated = pi;  /* 直接截断，不四舍五入 */
+    printf("(int)3.14159 = %d（截断，不是四舍五入）\n", truncated);
+
+    /* 5. signed vs unsigned 陷阱！ */
+    int neg = -1;
+    unsigned int pos = 1;
+    if (neg < pos) {
+        printf("-1 < 1u → 这里不会执行！\n");
+    } else {
+        printf("-1 >= 1u → 因为 -1 被转为无符号数 %u\n",
+               (unsigned int)neg);
+    }
+
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o implicit_conv implicit_conv.c
+./implicit_conv
+```
+
+输出：
+
+```
+char + char = 200（提升为 int 后运算，不溢出）
+int / double = 2.000000（int 提升为 double）
+5 / 2 = 2（整数除整数 → 整除）
+5.0 / 2 = 2.500000（有浮点数 → 浮点除法）
+(int)3.14159 = 3（截断，不是四舍五入）
+-1 >= 1u → 因为 -1 被转为无符号数 4294967295
+```
+
+#### 易错点
+
+**❌ 错误：用 `char` 接收 `getchar()` 的返回值**
+
+```c
+/* getchar_bug.c — getchar 返回值截断 */
+#include <stdio.h>
+
+int main(void) {
+    char ch;  /* 错误：应该用 int */
+    int count = 0;
+    /* EOF 通常是 -1，需要比 char 更大的类型才能区分 */
+    while ((ch = getchar()) != EOF) {
+        count++;
+    }
+    /* 在 unsigned char 平台上，EOF 被截断后永远不等于 EOF → 死循环
+       在 signed char 平台上，值为 255（0xFF）的字节会被误判为 EOF */
+    printf("读了 %d 个字符\n", count);
+    return 0;
+}
+```
+
+**✅ 正确：用 `int` 接收 `getchar()` 返回值**
+
+```c
+/* getchar_correct.c — 正确使用 getchar */
+#include <stdio.h>
+
+int main(void) {
+    int ch;   /* int 能同时容纳所有 char 值和 EOF */
+    int count = 0;
+    while ((ch = getchar()) != EOF) {
+        count++;
+    }
+    printf("读了 %d 个字符\n", count);
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o getchar_correct getchar_correct.c
+echo "Hello" | ./getchar_correct
+```
+
+输出：
+
+```
+读了 6 个字符
+```
+
+> ➕ **显式强制类型转换**
+>
+> 当你**有意**要做类型转换时，用强制类型转换 `(type)` 告诉编译器"我知道我在做什么"：
+>
+> ```c
+> int a = 300, b = 400;
+> long c = (long)a * b;  /* 先把 a 转为 long，避免 int 乘法溢出 */
+>
+> double d = (double)5 / 2;  /* 5 转为 5.0，执行浮点除法 → 2.5 */
+> ```
+>
+> 强制转换的优先级很高，`(float)a + b` 只转换 `a`，不转换 `a + b`。要转换整个表达式，需要加括号：`(float)(a + b)`。
+
+---
+
+### 6. 优先级与求值顺序
+
+#### 是什么
+
+C 表达式的求值由三个因素决定：
+
+1. **优先级**（precedence）：决定操作符如何**聚组**（哪些操作数属于哪个操作符）
+2. **结合性**（associativity）：决定同优先级操作符的聚组方向（左到右 or 右到左）
+3. **求值顺序**（evaluation order）：操作数实际的计算顺序——**大多数操作符不保证求值顺序**
+
+**优先级简记表（5 档记忆法）：**
+
+```
+┌─────────────────────────────────────────────────────┐
+│  第 1 档：后缀/单目（最高）                          │
+│  ()  []  ->  .  后缀++/--                           │
+│  前缀++/--  !  ~  +  -  *  &  sizeof  (type)       │
+├─────────────────────────────────────────────────────┤
+│  第 2 档：算术                                       │
+│  *  /  %    →    +  -    →    <<  >>                │
+├─────────────────────────────────────────────────────┤
+│  第 3 档：比较与位操作                               │
+│  <  <=  >  >=   →   ==  !=                          │
+│  &    →    ^    →    |                              │
+├─────────────────────────────────────────────────────┤
+│  第 4 档：逻辑与赋值                                 │
+│  &&    →    ||    →    ?:    →    =  +=  -= ...     │
+├─────────────────────────────────────────────────────┤
+│  第 5 档：逗号（最低）                               │
+│  ,                                                  │
+└─────────────────────────────────────────────────────┘
+
+记忆口诀：单目 > 算术 > 比较 > 逻辑赋值 > 逗号
+拿不准就加括号——括号永远最高优先级。
+```
+
+**关键认知：优先级 ≠ 求值顺序。** 优先级只决定操作符如何聚组，不决定操作数的求值先后。只有 4 个操作符保证求值顺序：
+
+| 操作符 | 保证 |
+|--------|------|
+| `&&` | 先左后右，左为假则不求右（短路） |
+| `||` | 先左后右，左为真则不求右（短路） |
+| `?:` | 先求条件，再根据结果只求一个分支 |
+| `,` | 先左后右 |
+
+其他所有操作符的操作数求值顺序都是**未指定的**。如果操作数有副作用，结果可能因编译器而异。
+
+#### 为什么重要
+
+- 记住完整的 15 级优先级表不现实，用 5 档记忆法覆盖 90% 的日常使用
+- "优先级≠求值顺序"是写出 UB 表达式的根源——**在同一表达式中多次修改同一变量是 UB**
+- `&&` 和 `||` 的短路特性不仅影响效率，还影响程序正确性
+
+#### 代码演示
+
+```c
+/* precedence_demo.c — 优先级与求值顺序 */
+#include <stdio.h>
+
+int main(void) {
+    /* 优先级示例：乘法先于加法 */
+    int result = 2 + 3 * 4;     /* 3*4=12, 2+12=14 */
+    printf("2 + 3 * 4 = %d\n", result);
+
+    /* 结合性示例：赋值从右到左 */
+    int a, b, c;
+    a = b = c = 10;             /* c=10, b=10, a=10 */
+    printf("a=%d, b=%d, c=%d\n", a, b, c);
+
+    /* 结合性示例：减法从左到右 */
+    int d = 10 - 3 - 2;        /* (10-3)-2 = 5，不是 10-(3-2)=9 */
+    printf("10 - 3 - 2 = %d\n", d);
+
+    /* 常见优先级陷阱：位操作 vs 比较 */
+    int x = 1, y = 2;
+    /* x & y == 0 被解析为 x & (y == 0)，因为 == 优先级高于 & */
+    printf("x & y == 0 的结果: %d（不是你想的 (x&y)==0）\n", x & y == 0);
+    printf("(x & y) == 0 的结果: %d（加括号才对）\n", (x & y) == 0);
+
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o precedence_demo precedence_demo.c
+./precedence_demo
+```
+
+输出：
+
+```
+2 + 3 * 4 = 14
+a=10, b=10, c=10
+10 - 3 - 2 = 5
+x & y == 0 的结果: 0（不是你想的 (x&y)==0）
+(x & y) == 0 的结果: 1（加括号才对）
+```
+
+#### 易错点
+
+**❌ 错误：在同一表达式中多次修改同一变量**
+
+```c
+/* undefined_order.c — 求值顺序不确定导致 UB */
+#include <stdio.h>
+
+int main(void) {
+    int i = 5;
+
+    /* ❌ UB：i 在同一表达式中被修改了两次 */
+    /* 不同编译器、不同优化级别可能产生不同结果 */
+    int result = i++ + ++i;
+    printf("i++ + ++i = %d（结果不确定！）\n", result);
+
+    /* ❌ 更极端的例子 */
+    i = 10;
+    /* i = i-- - --i * (i = -3) * i++ + ++i; */
+    /* 原书中列举了 12 种编译器对这个表达式产生了 12 种不同结果 */
+
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o undefined_order undefined_order.c
+# warning: operation on 'i' may be undefined [-Wsequence-point]
+```
+
+**✅ 正确：拆成多条语句，消除歧义**
+
+```c
+/* defined_order.c — 拆成独立语句 */
+#include <stdio.h>
+
+int main(void) {
+    int i = 5;
+
+    /* ✅ 每条语句只修改 i 一次，结果完全确定 */
+    int a = i;   /* a = 5 */
+    i++;         /* i = 6 */
+    ++i;         /* i = 7 */
+    int b = i;   /* b = 7 */
+    int result = a + b;
+    printf("result = %d（确定的结果）\n", result);  /* 12 */
+
+    return 0;
+}
+```
+
+```bash
+gcc -std=c99 -Wall -Wextra -g -o defined_order defined_order.c
+./defined_order
+```
+
+输出：
+
+```
+result = 12（确定的结果）
+```
+
+---
+
+### 7. typedef
+
+#### 是什么
+
+`typedef` 为已有类型创建一个新名字。语法和变量声明完全相同，只是前面加上 `typedef` 关键字：
+
+```c
+/* 普通声明：ptr_to_char 是一个指向 char 的指针变量 */
+char *ptr_to_char;
+
+/* typedef 声明：ptr_to_char 是"指向 char 的指针"这个类型的新名字 */
+typedef char *ptr_to_char;
+
+/* 之后可以这样用 */
+ptr_to_char a;  /* a 是一个 char * */
+```
+
+#### 为什么重要
+
+- **简化复杂声明**：函数指针、指向数组的指针等复杂类型用 typedef 后可读性大幅提高
+- **提高可移植性**：把平台相关的类型用 typedef 包装，修改时只改一处（如 `typedef unsigned int uint32_t;`）
+- **增强可读性**：`typedef int (*compare_func)(const void *, const void *)` 比每次写完整声明清楚得多
+
+#### 代码演示
+
+```c
+/* typedef_demo.c — typedef 基础用法 */
+#include <stdio.h>
+
+/* typedef 为类型起别名 */
+typedef int Length;           /* Length 就是 int 的别名 */
+typedef char *String;         /* String 就是 char * 的别名 */
+typedef unsigned long size_type;
+
+/* typedef 简化函数指针类型 */
+typedef int (*CompareFunc)(int, int);
+
+int ascending(int a, int b) {
+    return a - b;  /* 正数表示 a > b */
+}
+
+int descending(int a, int b) {
+    return b - a;
+}
+
+void sort_demo(int *arr, int n, CompareFunc cmp) {
+    /* 简单冒泡排序 */
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - 1 - i; j++) {
+            if (cmp(arr[j], arr[j + 1]) > 0) {
+                int tmp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = tmp;
+            }
+        }
+    }
 }
 
 int main(void) {
     Length width = 100;
-    String greeting = "Hello";
+    String name = "Alice";
+    size_type big_number = 123456789UL;
 
     printf("width = %d\n", width);
-    printf("greeting = %s\n", greeting);
+    printf("name = %s\n", name);
+    printf("big_number = %lu\n", big_number);
 
-    /* 函数指针别名的使用 */
-    MathFunc op = add;
-    printf("add(3, 4) = %d\n", op(3, 4));
+    /* 函数指针通过 typedef 变得清晰 */
+    int arr[] = {5, 2, 8, 1, 9};
+    int n = sizeof(arr) / sizeof(arr[0]);
+
+    sort_demo(arr, n, ascending);
+    printf("升序: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\n");
+
+    sort_demo(arr, n, descending);
+    printf("降序: ");
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    printf("\n");
 
     return 0;
 }
@@ -779,82 +1258,112 @@ gcc -std=c99 -Wall -Wextra -g -o typedef_demo typedef_demo.c
 ./typedef_demo
 ```
 
+输出：
+
+```
+width = 100
+name = Alice
+big_number = 123456789
+升序: 1 2 5 8 9
+降序: 9 8 5 2 1
+```
+
 #### 易错点
 
-❌ **错误：用 `#define` 代替 `typedef` 定义指针类型**
+**❌ 错误：用 `#define` 代替 typedef 定义指针类型**
 
 ```c
+/* define_vs_typedef.c — #define 的指针陷阱 */
 #include <stdio.h>
 
-#define PTR_CHAR char *
+#define D_PTR_CHAR char *
+typedef char *T_PTR_CHAR;
 
 int main(void) {
-    PTR_CHAR a, b;
-    /* 预处理展开后变成：char *a, b;
-       a 是 char* 指针，但 b 只是 char！ */
+    /* #define 版本：文本替换为 char * a, b; → a 是 char *，b 只是 char！ */
+    D_PTR_CHAR a, b;
+    /* 展开后：char * a, b; → a 是指针，b 是字符 */
 
-    a = "hello";
-    /* b = "world";  ← 编译错误：b 是 char 不是 char* */
+    /* typedef 版本：a2 和 b2 都是 char * */
+    T_PTR_CHAR a2, b2;
 
-    printf("a = %s\n", a);
-    printf("sizeof(b) = %zu\n", sizeof(b));  /* 1，证明 b 是 char */
+    printf("sizeof(a)  = %zu（指针）\n", sizeof(a));
+    printf("sizeof(b)  = %zu（char！不是指针！）\n", sizeof(b));
+    printf("sizeof(a2) = %zu（指针）\n", sizeof(a2));
+    printf("sizeof(b2) = %zu（指针）\n", sizeof(b2));
 
     return 0;
 }
 ```
 
-`#define` 是纯文本替换，`char *` 中的 `*` 只修饰紧跟它的第一个变量。
+```bash
+gcc -std=c99 -Wall -Wextra -g -o define_vs_typedef define_vs_typedef.c
+./define_vs_typedef
+```
 
-✅ **正确：用 typedef**
+在 64 位系统上输出：
+
+```
+sizeof(a)  = 8（指针）
+sizeof(b)  = 1（char！不是指针！）
+sizeof(a2) = 8（指针）
+sizeof(b2) = 8（指针）
+```
+
+**✅ 正确：用 typedef 定义指针类型别名**
 
 ```c
+/* typedef_pointer.c — typedef 正确处理指针 */
 #include <stdio.h>
 
-typedef char *PtrChar;
+typedef char *String;
 
 int main(void) {
-    PtrChar a, b;
-    /* a 和 b 都是 char* 指针 */
-
-    a = "hello";
-    b = "world";
-
-    printf("a = %s, b = %s\n", a, b);
-
+    String s1 = "Hello", s2 = "World";  /* 两个都是 char * */
+    printf("%s %s\n", s1, s2);
     return 0;
 }
 ```
 
-typedef 定义的是一个真正的类型别名，`PtrChar a, b;` 中 a 和 b 都是 `char *`。
+```bash
+gcc -std=c99 -Wall -Wextra -g -o typedef_pointer typedef_pointer.c
+./typedef_pointer
+```
 
-**原书总结**：应该使用 typedef 而不是 `#define` 来创建新的类型名字，因为后者无法正确处理指针类型。
+输出：
+
+```
+Hello World
+```
 
 ---
 
 ## 概念串联
 
-本课 6 个概念的逻辑关系：
+本课 7 个概念的逻辑关系：
 
 ```
-控制流语句（程序如何做决策和循环）
+表达式语句与副作用（C 的基本执行单元是什么）
     ↓
-表达式与副作用（C 的"一切皆表达式"哲学）
+控制流语句（如何控制执行顺序）
     ↓
-操作符分类（表达式由操作符组成）
+操作符分类（表达式由哪些操作符组成）
     ↓
-优先级与结合性（操作符的组合规则）
+左值与右值（哪些表达式能被赋值）
     ↓
-左值与右值（操作符对操作数的要求）
+隐式类型转换（混合类型运算时怎么自动转换）
     ↓
-typedef（为类型创建别名，简化声明）
+优先级与求值顺序（复杂表达式怎么聚组和求值）
+    ↓
+typedef（如何为类型起别名，简化复杂声明）
 ```
 
-**左值/右值**是连接本模块和后续指针模块的桥梁：
-- 指针变量 `p` 是左值
-- 解引用 `*p` 是左值（这就是指针能"间接修改"变量的原因）
-- 数组名在表达式中不是可修改的左值
+**与前课的衔接**：lesson-01 教了数据类型、变量声明、作用域。本课的操作符操作这些数据，控制流决定程序走向，左值/右值概念桥接了"变量"和"表达式"。隐式转换发生在不同类型的变量参与运算时。
 
-下一个模块「指针基础」将从内存模型入手，深入讲解指针变量、`&` 和 `*` 操作符——你在本课学到的左值/右值概念是理解它们的关键。
+**与后续课程的衔接**：
+- module-01（指针基础）会大量使用左值概念——`*p` 是左值，`&x` 取左值地址
+- module-02（函数）会用到表达式语句（函数调用就是表达式）和 typedef（简化函数指针类型）
+- module-03（数组）的下标引用 `a[i]` 是左值，也涉及指针算术的优先级
 
 ---
 
@@ -862,36 +1371,44 @@ typedef（为类型创建别名，简化声明）
 
 | # | 陷阱 | 症状 | 原因 | 修复 |
 |---|------|------|------|------|
-| 1 | `=` 与 `==` 混淆 | `if (x = 5)` 永远为真，x 被意外修改 | `=` 是赋值操作符，表达式值为 5（非零=真） | 判断相等用 `==`；编译时开 `-Wall` 捕捉 |
-| 2 | switch 忘写 break | 多个 case 的代码全部执行（fall-through） | C 的 switch 默认穿透到下一个 case | 每个 case 末尾加 `break`；有意 fall-through 加注释 |
-| 3 | dangling else | else 匹配了错误的 if | else 总是与最近的未匹配 if 配对 | 始终用花括号 `{}` 包裹 if/else 的主体 |
-| 4 | `&&`/`\|\|` 与 `&`/`\|` 混淆 | 逻辑判断结果错误（如 `1 & 2 == 0`） | 位操作符和逻辑操作符是完全不同的运算 | 逻辑判断用 `&&`/`\|\|`，位操作用 `&`/`\|` |
-| 5 | `#define` 定义指针类型别名 | 多变量声明时只有第一个是指针 | `#define` 是文本替换，`*` 只修饰第一个标识符 | 用 `typedef` 代替 `#define` 定义类型别名 |
-| 6 | 位操作符优先级低于比较操作符 | `a & mask == value` 被解析为 `a & (mask == value)` | `==` 优先级高于 `&` | 对位操作表达式加括号：`(a & mask) == value` |
+| 1 | switch 忘写 break | case 之后的代码全部执行（fall-through） | switch 执行流贯穿 case 标签，break 是手动加的 | 每个 case 末尾加 break，有意 fall-through 加注释 |
+| 2 | `==` 写成 `=` | if 条件永远为真（或永远为假） | 赋值是合法的表达式，非零值为真 | 用 `==` 比较；开启 `-Wall` 检测赋值出现在条件中 |
+| 3 | 位操作符 `&`/`|` 与逻辑操作符 `&&`/`||` 混淆 | 条件判断结果错误 | 位操作对每个位运算，逻辑操作对真/假运算 | 逻辑判断用 `&&`/`||`，按位操作才用 `&`/`|` |
+| 4 | `getchar()` 返回值存入 `char` | EOF 检测失败，死循环或提前退出 | `char` 无法区分 EOF（-1）和正常字符 | 用 `int` 接收 `getchar()` 返回值 |
+| 5 | signed/unsigned 混合比较 | `-1 < 1u` 结果为 false | signed 被隐式转为 unsigned，-1 变成很大的数 | 避免混合比较，或显式转换后比较 |
+| 6 | 同一表达式多次修改同一变量 | 不同编译器/优化级别结果不同 | C 标准未定义操作数求值顺序，这是 UB | 拆成多条语句，每条只修改一次 |
+| 7 | while 循环中 continue 跳过调整 | 循环变量不增加，死循环 | continue 跳到条件测试，不经过循环体末尾的调整 | 用 for 循环；或在 continue 前手动调整 |
 
 ---
 
 ## 动手练习提示
 
-### 练习 1：操作符优先级实验
+### 练习 1：switch 计数器
 
-写一个程序，对比以下表达式的结果，验证优先级规则：
-- `*p++` vs `(*p)++` vs `*(p++)`
-- `a & b == c` vs `(a & b) == c`
-- `a + b * c` vs `(a + b) * c`
+编写一个程序，从标准输入读取字符直到 EOF，统计字母、数字和空白字符（空格、制表符、换行符）的个数。用 switch 语句进行分类。
 
-思路提示：声明一些变量，分别计算带括号和不带括号的版本，用 `printf` 打印对比。
-容易卡住的地方：`*p++` 中 `p` 会被修改，注意每次测试前重置指针。
+- 思路提示：对空白字符的三种情况，可以利用 fall-through 让它们共享一个计数器
+- 容易卡住的地方：`getchar()` 返回 `int`，不是 `char`
 
-### 练习 2：用 typedef 简化声明
+### 练习 2：优先级实验
 
-尝试用 typedef 为以下类型创建别名：
-1. `int *` → `IntPtr`
-2. `const char *` → `ConstStr`
-3. （挑战）`int (*)(int, int)` → `BinaryOp`（函数指针）
+写一个程序验证以下表达式的结果，先自己手算，再运行对比：
+- `2 + 3 * 4`
+- `2 * 3 + 4 * 5`
+- `1 << 2 + 3`（移位和加法的优先级谁高？）
+- `3 & 4 == 4`（位 AND 和等于的优先级谁高？）
 
-思路提示：typedef 的语法就是在变量声明前面加 `typedef`。
-容易卡住的地方：函数指针的声明语法比较绕，但 typedef 后用起来和普通类型一样。
+- 思路提示：在每个表达式后面加上你认为等价的带括号版本，比较两者的结果
+- 容易卡住的地方：移位操作符的优先级低于加法！
+
+### 练习 3：typedef 练习
+
+用 typedef 定义以下类型别名，并声明对应的变量：
+1. `IntArray10`：包含 10 个 int 的数组类型
+2. `FuncPtr`：指向接受两个 int 返回 int 的函数的指针类型
+
+- 思路提示：先写出不用 typedef 的声明（如 `int arr[10];`），再在前面加 typedef
+- 容易卡住的地方：数组的 typedef 写法 `typedef int IntArray10[10];`
 
 ---
 
@@ -899,11 +1416,11 @@ typedef（为类型创建别名，简化声明）
 
 > 不给答案，动脑想完再往下学。
 
-1. `int a = 1, b = 2; int c = (a = b, a + b);` 执行后 `a`、`b`、`c` 的值分别是什么？提示：逗号操作符的规则是什么？
+1. 为什么 `char ch; while ((ch = getchar()) != EOF)` 在某些平台上会导致死循环？应该怎么修？
 
-2. 表达式 `*p++` 等价于 `*(p++)` 还是 `(*p)++`？为什么？你能设计一个实验验证吗？
+2. 表达式 `a + b * c` 中，`*` 一定在 `+` 之前求值吗？表达式 `f() + g() * h()` 中，三个函数的调用顺序确定吗？为什么这很重要？
 
-3. 为什么说"优先级决定的是分组而不是求值顺序"？考虑表达式 `f() + g() * h()`——三个函数的调用顺序是什么？
+3. `#define PTR char *` 和 `typedef char *PTR;` 都定义了指针类型别名，但 `PTR a, b;` 的效果不同——区别是什么？为什么？
 
 ---
 
@@ -911,6 +1428,8 @@ typedef（为类型创建别名，简化声明）
 
 | 资源 | 类型 | 说明 |
 |------|------|------|
-| [C Operator Precedence - cppreference.com](https://en.cppreference.com/w/c/language/operator_precedence.html) | 官方文档 | 完整的 C 操作符优先级表，权威参考 |
-| [lvalue and rvalue in C - GeeksforGeeks](https://www.geeksforgeeks.org/c/lvalue-and-rvalue-in-c-language/) | 文章 | 左值右值概念的图解和示例 |
-| [C 运算符 - 菜鸟教程](https://www.runoob.com/cprogramming/c-operators.html) | 教程 | 中文操作符入门教程，配有简单示例 |
+| [C Operator Precedence - cppreference.com](https://en.cppreference.com/w/c/language/operator_precedence.html) | 官方文档 | C 操作符优先级权威参考表 |
+| [Implicit Type Conversion in C - GeeksforGeeks](https://www.geeksforgeeks.org/c/implicit-type-conversion-in-c-with-examples/) | 文章 | 隐式类型转换详解，含代码示例 |
+| [C语言运算符优先级和结合性 - C语言中文网](https://c.biancheng.net/view/161.html) | 教程 | 中文优先级表，适合对照记忆 |
+| [理解 C/C++ 中的左值和右值 - nettee](https://nettee.github.io/posts/2018/Understanding-lvalues-and-rvalues-in-C-and-C/) | 博客 | 中文左值右值详解，清晰易懂 |
+| [Operator Precedence and Associativity - GeeksforGeeks](https://www.geeksforgeeks.org/c/operator-precedence-and-associativity-in-c/) | 文章 | 英文优先级与结合性详解 |

@@ -77,9 +77,10 @@ ReadBooksWithAI/
 ├── books/
 │   └── <book-id>/                  # 每本书独立空间
 │       ├── REQUIREMENTS.md         # /init-book 产出
-│       ├── refs/                   # 用户放参考 PDF + 索引
-│       │   ├── *.pdf               # 用户提供的参考资料
-│       │   └── *-index.md          # /index-book 产出
+│       ├── refs/                   # 用户放参考资料 + 索引
+│       │   ├── *.pdf / *.epub      # 用户提供的参考资料
+│       │   ├── *-index.md          # /index-book 产出
+│       │   └── epub-extracted/     # epub 纯文本提取（如有 epub）
 │       ├── BOOK.md                 # /plan-book 产出：书级元数据
 │       ├── BOOK-STYLE.md           # /config-book 产出：写作约束
 │       ├── module-index.md         # /plan-book 产出：课程总索引

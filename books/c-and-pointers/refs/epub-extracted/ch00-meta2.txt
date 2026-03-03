@@ -1,0 +1,28 @@
+Unknown
+
+
+版权声明
+
+
+Simplified Chinese Edition Copyright © 2003 by PEARSON EDUCATION ASIA LIMITED and POSTS & TELECOMMUNICATIONS PRESS.
+
+
+Pointers On C ISBN:0-673-99986-6
+
+
+By Kenneth A.Reek.
+
+
+Copyright © 1998.
+
+
+All Rights Reserved.
+
+
+Published by arrangement with Addison Wesley Longman, Pearson Education, Inc.
+
+
+The edition is authorized for sale only in the People’s Republic of China (excluding the Special Administrative of Hong Kong and Macau).
+
+
+本书封面贴有Pearson Education（培生教育出版集团）激光防伪标签。无标签者不得销售。
