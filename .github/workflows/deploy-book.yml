@@ -29,7 +29,9 @@ jobs:
 
       - name: Install dependencies
         working-directory: books/c-and-pointers
-        run: npm install
+        run: |
+          npm install
+          ln -s $(pwd)/plugins/honkit-plugin-mermaid-cdn node_modules/honkit-plugin-mermaid-cdn
 
       - name: Build book
         working-directory: books/c-and-pointers
