@@ -4,6 +4,30 @@
 
 ---
 
+## 当前进度
+
+### 《C和指针》(Pointers on C)
+
+**[在线阅读](https://KahanaT800.github.io/ReadBooksWithAI/pointers-on-c/)** | 13 个模块，29 课
+
+| 状态 | 含义 | 数量 |
+|------|------|------|
+| ✅ | 已发布 | 0 |
+| 👀 | 已审阅 | 5 |
+| 📝 | 初稿完成 | 0 |
+| ⬜ | 未开始 | 24 |
+
+已完成的课程：
+- Module 00: C 基础速览
+  - lesson-01: C 程序结构与编译 👀
+  - lesson-02: 控制流与操作符 👀
+- Module 01: 指针基础
+  - lesson-01: 内存模型与指针入门 👀
+  - lesson-02: 指针陷阱与表达式 👀
+  - lesson-03: 指针运算 👀
+
+---
+
 ## 为什么做这个项目
 
 读技术书的时候你一定遇到过这些情况：
@@ -143,42 +167,6 @@ cp ~/CandPointer.pdf books/c-and-pointers/refs/
 | 前后衔接 | 是否超纲、是否为后续课程留好接口 | 对照前后课程 |
 
 审查完成后生成报告，你可以选择自动修复、逐条确认、或手动处理。
-
----
-
-## 当前进度
-
-### 《C和指针》(Pointers on C)
-
-13 个模块，29 课。当前进度：
-
-| 状态 | 含义 | 数量 |
-|------|------|------|
-| ✅ | 已发布 | 0 |
-| 👀 | 已审阅 | 5 |
-| 📝 | 初稿完成 | 0 |
-| ⬜ | 未开始 | 24 |
-
-已完成的课程：
-- Module 00: C 基础速览
-  - lesson-01: C 程序结构与编译 👀
-  - lesson-02: 控制流与操作符 👀
-- Module 01: 指针基础
-  - lesson-01: 内存模型与指针入门 👀
-  - lesson-02: 指针陷阱与表达式 👀
-  - lesson-03: 指针运算 👀
-
-### 在线阅读
-
-**[在线阅读《C和指针》](https://KahanaT800.github.io/ReadBooksWithAI/pointers-on-c/)** — 推送到 main 分支后自动构建发布。
-
-本地构建：
-
-```bash
-cd books/c-and-pointers
-npm install            # 首次需要安装依赖
-npx honkit serve       # 本地预览 http://localhost:4000
-```
 
 ---
 
