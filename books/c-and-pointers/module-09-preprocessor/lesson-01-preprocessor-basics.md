@@ -5,7 +5,7 @@ title: "预处理器基础"
 original_chapters:
   - chapter: 14
     pages: "279-286"
-concepts: [#define, 宏, 宏与函数区别, 副作用, #undef, 命令行定义]
+concepts: ["#define", 宏, 宏与函数区别, 副作用, "#undef", 命令行定义]
 status: placeholder
 ---
 
