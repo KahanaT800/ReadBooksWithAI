@@ -62,5 +62,19 @@
 | 整型提升 | integral promotion | module-00 lesson-02 | 比 int 窄的类型（char、short）在运算前自动提升为 int 或 unsigned int |
 | 寻常算术转换 | usual arithmetic conversion | module-00 lesson-02 | 二元操作符两侧类型不同时，较窄类型自动转换为较宽类型的规则 |
 | 边界对齐 | boundary alignment | module-01 lesson-01 | 多字节类型的起始地址必须是其大小的倍数（如 int 地址为 4 的倍数），硬件要求 |
+| 退化 | decay | module-03 lesson-01 | 数组名在表达式中自动转换为指向首元素的指针常量，两个例外：sizeof 和 & |
+| 下标引用 | subscript | module-03 lesson-01 | 用 `[]` 运算符访问数组元素，`a[i]` 等价于 `*(a + i)` |
+| 指针常量 | pointer constant | module-03 lesson-01 | 数组名退化后产生的指针值，不可修改（不能赋值、不能自增），区别于指针变量 |
+| 行主序 | row-major order | module-03 lesson-02 | C 多维数组的存储顺序，最右下标率先变化，元素按行连续排列在内存中 |
+| 指向数组的指针 | pointer to array | module-03 lesson-02 | 声明为 `int (*p)[N]` 的指针，指向含 N 个元素的数组，`p+1` 跳过整个数组 |
+| 指针数组 | array of pointers | module-03 lesson-03 | 元素是指针的数组，声明为 `int *p[N]`，`[]` 优先级高于 `*` 所以先解数组 |
+| 字符串字面量 | string literal | module-03 lesson-03 | 用双引号括起的字符串常量（如 `"hello"`），存储在只读数据段，不可修改 |
+| 哨兵 | sentinel | module-03 lesson-03 | 放在数据结构末尾用于标记结束的特殊值，如指针数组末尾的 NULL |
+| NUL 终止符 | NUL terminator | module-04 lesson-01 | 值为 `'\0'`（整数 0）的字符，标记 C 字符串的结束位置，区别于 NULL 指针 |
+| 缓冲区溢出 | buffer overflow | module-04 lesson-01 | 写入数据超过目标缓冲区容量，覆盖相邻内存，是最常见的安全漏洞之一 |
+| 不受限字符串函数 | unrestricted string function | module-04 lesson-01 | 不检查目标缓冲区大小的字符串函数（如 `strcpy`、`strcat`），依赖调用者保证空间足够 |
+| 长度受限字符串函数 | length-restricted string function | module-04 lesson-01 | 接受长度参数限制操作范围的字符串函数（如 `strncpy`、`strncat`），更安全但有各自陷阱 |
+| 标记 | token | module-04 lesson-02 | 字符串按分隔符拆分后的各个独立部分，`strtok` 函数用于提取标记 |
+| 不可重入 | non-reentrant | module-04 lesson-02 | 函数内部使用静态变量保存状态，不能同时被多次调用（如 `strtok`），对比可重入版本 `strtok_r` |
 
 <!-- 由 /write-lesson skill 在写课过程中自动填充 -->

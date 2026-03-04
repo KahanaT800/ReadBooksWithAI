@@ -44,9 +44,9 @@
 
 | # | 文件 | 标题 | 核心概念 | 状态 |
 |---|------|------|---------|------|
-| 01 | `module-03-arrays-and-pointers/lesson-01-array-basics.md` | 一维数组与指针关系 | 数组名, 下标引用, 指针与下标等价, 数组作为函数参数 | ⬜ |
-| 02 | `module-03-arrays-and-pointers/lesson-02-multidim-arrays.md` | 多维数组 | 存储顺序, 多维下标, 指向数组的指针, 多维数组作为函数参数 | ⬜ |
-| 03 | `module-03-arrays-and-pointers/lesson-03-pointer-arrays.md` | 指针数组与效率 | 指针数组, 指针效率 vs 下标, 字符指针数组 | ⬜ |
+| 01 | `module-03-arrays-and-pointers/lesson-01-array-basics.md` | 一维数组与指针关系 | 数组名, 下标引用, 指针与下标等价, 数组作为函数参数 | 👀 |
+| 02 | `module-03-arrays-and-pointers/lesson-02-multidim-arrays.md` | 多维数组 | 存储顺序, 多维下标, 指向数组的指针, 多维数组作为函数参数 | 👀 |
+| 03 | `module-03-arrays-and-pointers/lesson-03-pointer-arrays.md` | 指针数组与效率 | 指针数组, 指针效率 vs 下标, 字符指针数组 | 👀 |
 
 ---
 
@@ -56,8 +56,8 @@
 
 | # | 文件 | 标题 | 核心概念 | 状态 |
 |---|------|------|---------|------|
-| 01 | `module-04-strings/lesson-01-string-basics.md` | 字符串基础与标准函数 | 字符串基础, strlen, strcpy/strncpy, strcat/strncat, strcmp/strncmp | ⬜ |
-| 02 | `module-04-strings/lesson-02-string-search.md` | 字符串查找与内存操作 | strchr, strstr, strtok, 字符分类/转换, memcpy/memmove/memset | ⬜ |
+| 01 | `module-04-strings/lesson-01-string-basics.md` | 字符串基础与标准函数 | 字符串基础, strlen, strcpy/strncpy, strcat/strncat, strcmp/strncmp | 👀 |
+| 02 | `module-04-strings/lesson-02-string-search.md` | 字符串查找与内存操作 | strchr, strstr, strtok, 字符分类/转换, memcpy/memmove/memset | 👀 |
 
 ---
 
